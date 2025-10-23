@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avalanche Arena Season 1</title> {/* Title Updated */}
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Avalanche Arena: S1 Staking</title> <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
@@ -39,47 +38,35 @@
         <header>
             <div class="flex items-center justify-center mb-2">
                 <svg class="avax-logo" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 32C24.8366 32 32 24.8366 32 16C32 7.16344 24.8366 0 16 0C7.16344 0 0 7.16344 0 16C0 24.8366 7.16344 32 16 32ZM13.8643 9.49281L19.2941 9.49281L23.7314 22.5072L18.3016 22.5072L16.8973 18.6738L9.2066 18.6738L7.8023 22.5072L2.37255 22.5072L13.8643 9.49281ZM16.0501 12.3392L11.5369 16.096L14.6133 16.096L16.0501 12.3392Z" fill="#E84142"/></svg>
-                <h1 class="text-3xl font-bold text-white tracking-tight">Avalanche Arena Season 1</h1> {/* Header Updated */}
-            </div>
-            <p class="text-gray-400">Mint, Stake, and Battle your Characters</p>
-        </header>
+                <h1 class="text-3xl font-bold text-white tracking-tight">Avalanche Arena</h1> </div>
+            <p class="text-gray-400">Mint, Stake, and Battle your Arena Characters</p> </header>
 
         <div id="connectWalletContainer">
-            <button id="connectWalletBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-lg text-white btn-primary">Connect Wallet</button>
-        </div>
+            <button id="connectWalletBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-lg text-white btn-primary">Connect Wallet to Play</button> </div>
         <p id="walletAddress" class="text-gray-500 text-sm truncate"></p>
 
         <main id="gameContainer" class="hidden space-y-8">
             
             <section class="bg-gray-800/50 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-white">Mint Character</h2>
-                <p class="text-gray-300 mb-4">Mint a new Character NFT for 0.05 AVAX. All characters start with base stats of 100 STR, 100 AGI, 100 INT.</p>
-                <button id="mintBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-lg text-white btn-primary">Mint (0.05 AVAX)</button>
-            </section>
+                <h2 class="text-2xl font-semibold mb-4 text-white">Mint New Character</h2> <p class="text-gray-300 mb-4">Mint a new Character NFT for <strong>0.05 AVAX</strong>. New characters start with base stats: 100 STR, 100 AGI, 100 INT.</p> <button id="mintBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-lg text-white btn-primary">Mint Character (0.05 AVAX)</button> </section>
 
-            {/* Staking Explanation Added */}
             <section class="bg-gray-800/50 rounded-lg p-6 text-left">
-                 <h2 class="text-2xl font-semibold mb-2 text-white text-center">How Staking Works</h2>
-                 <p class="text-gray-300">
-                     Staking your Character NFT locks it in the Game Engine contract, making it stronger over time.
-                     For every **full 30-day period** your character remains staked, its **Strength increases by 1 point**.
-                     Agility and Intelligence currently remain at their base value (100).
-                     You can **unstake at any time**, but you only gain strength for completed 30-day periods.
-                     When you unstake, your character is returned to your wallet with its updated stats permanently recorded on the NFT.
-                     Staked characters cannot be transferred or used in combat.
-                 </p>
+                 <h2 class="text-2xl font-semibold mb-4 text-white text-center">Character Staking</h2> <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li>Staking locks your Character NFT in the Game Engine contract to make it stronger.</li>
+                    <li>For every <strong>full 30-day period</strong> staked, your character's <strong>Strength increases by 1</strong>.</li>
+                    <li>Agility and Intelligence remain at their base value (100).</li>
+                    <li>You can <strong>unstake at any time</strong>, but strength is only gained for completed 30-day periods.</li>
+                    <li>When you unstake, your character is returned to your wallet with its updated stats permanently recorded.</li>
+                    <li>Staked characters cannot be transferred or used in combat.</li>
+                 </ul>
             </section>
 
             <section class="bg-gray-800/50 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-white">Manage Character</h2>
-                <div class="flex flex-col sm:flex-row gap-2 mb-4">
-                    <input id="tokenIdInput" type="number" placeholder="Enter Token ID" class="w-full sm:w-2/3">
-                    <button id="lookupTokenBtn" class="w-full sm:w-1/3 py-2 px-4 rounded-lg font-semibold text-white btn-secondary">Look Up</button>
-                </div>
+                <h2 class="text-2xl font-semibold mb-4 text-white">Manage Your Characters</h2> <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                    <input id="tokenIdInput" type="number" placeholder="Enter Character Token ID" class="w-full sm:w-2/3"> <button id="lookupTokenBtn" class="w-full sm:w-1/3 py-2 px-4 rounded-lg font-semibold text-white btn-secondary">Find Character</button> </div>
 
                 <div id="characterCard" class="hidden bg-gray-900/60 rounded-lg p-4 text-left space-y-3">
-                    <h3 class="text-xl font-bold text-center text-white">Token #<span id="cardTokenId"></span></h3>
-                    <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <h3 class="text-xl font-bold text-center text-white">Character #<span id="cardTokenId"></span></h3> <div class="grid grid-cols-2 gap-x-4 gap-y-2">
                         <p><span class="text-gray-400">Strength:</span> <span id="statStr" class="font-bold text-white"></span></p>
                         <p><span class="text-gray-400">Agility:</span> <span id="statAgi" class="font-bold text-white"></span></p>
                         <p><span class="text-gray-400">Intelligence:</span> <span id="statInt" class="font-bold text-white"></span></p>
@@ -88,25 +75,19 @@
                         <p><span class="text-gray-400">Losses:</span> <span id="statLosses" class="font-bold text-red-400"></span></p>
                     </div>
                     <div id="stakeActions" class="hidden pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button id="approveBtn" class="w-full py-2 px-4 rounded-lg font-semibold text-white btn-secondary">Approve Engine</button>
-                        <button id="stakeBtn" class="w-full py-2 px-4 rounded-lg font-semibold text-white btn-primary">Stake Character</button>
+                        <button id="approveBtn" class="w-full py-2 px-4 rounded-lg font-semibold text-white btn-secondary">1. Approve Engine</button>
+                        <button id="stakeBtn" class="w-full py-2 px-4 rounded-lg font-semibold text-white btn-primary">2. Stake Character</button>
                     </div>
                     <div id="unstakeActions" class="hidden pt-2">
-                        {/* Unstake Button is here */}
                         <button id="unstakeBtn" class="w-full py-2 px-4 rounded-lg font-semibold text-white btn-primary">Unstake Character</button>
                     </div>
                 </div>
             </section>
 
             <section class="bg-gray-800/50 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-white">Combat Zone</h2>
-                <p class="text-gray-300 mb-4">Select two of your (unstaked) characters to fight. Combat is resolved deterministically based on stats (STR * 3 + AGI * 2 + INT * 1). Winner/Loser is recorded on the NFTs.</p>
-                <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                    <input id="tokenAInput" type="number" placeholder="Token ID A" class="w-full">
-                    <input id="tokenBInput" type="number" placeholder="Token ID B" class="w-full">
-                </div>
-                <button id="fightBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-lg text-white btn-primary">Resolve Combat</button>
-            </section>
+                <h2 class="text-2xl font-semibold mb-4 text-white">Arena Combat</h2> <p class="text-gray-300 mb-4">Enter two of your <strong>unstaked</strong> Character IDs to fight. Combat is resolved on-chain based on total power (STR*3 + AGI*2 + INT*1). Win/loss records are updated on the NFTs.</p> <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input id="tokenAInput" type="number" placeholder="Character ID A" class="w-full"> <input id="tokenBInput" type="number" placeholder="Character ID B" class="w-full"> </div>
+                <button id="fightBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-lg text-white btn-primary">Start Combat</button> </section>
         </main>
         
         <footer id="messageArea" class="mt-4 text-center min-h-[24px]">
@@ -119,8 +100,8 @@
         const nftContractAddress = "0xCc88DcFed964C96508ffc799e5e48926cc3a2dE1";
         const gameEngineContractAddress = "0x4F4e61F010190D377763d3417A589c5e16076DCB";
         
-        // ** USING CORRECT ABIs PROVIDED BY USER **
-        const nftContractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"MINT_PRICE","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"OWNER_WITHDRAWAL_ADDRESS","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"characterStats","outputs":[{"internalType":"uint256","name":"strength","type":"uint256"},{"internalType":"uint256","name":"agility","type":"uint256"},{"internalType":"uint256","name":"intelligence","type":"uint256"},{"internalType":"bool","name":"isStaked","type":"bool"},{"internalType":"uint256","name":"wins","type":"uint256"},{"internalType":"uint256","name":"losses","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"gameEngineAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"safeMint","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_gameEngineAddress","type":"address"}],"name":"setGameEngine","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bool","name":"_isStaked","type":"bool"}],"name":"setStakingStatus","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"uint256","name":"_newStrength","type":"uint256"},{"internalType":"uint256","name":"_newAgility","type":"uint256"},{"internalType":"uint256","name":"_newIntelligence","type":"uint256"}],"name":"updateCharacterStats","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bool","name":"_isWinner","type":"bool"}],"name":"updateCombatHistory","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdrawFunds","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+        // ** ABIs provided by user **
+        const nftContractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"MINT_PRICE","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"OWNER_WITHDRAWAL_ADDRESS","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"characterStats","outputs":[{"internalType":"uint256","name":"strength","type":"uint256"},{"internalType":"uint256","name":"agility","type":"uint256"},{"internalType":"uint256","name":"intelligence","type":"uint256"},{"internalType":"bool","name":"isStaked","type":"bool"},{"internalType":"uint256","name":"wins","type":"uint256"},{"internalType":"uint256","name":"losses","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"gameEngineAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],U,"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"safeMint","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_gameEngineAddress","type":"address"}],"name":"setGameEngine","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bool","name":"_isStaked","type":"bool"}],"name":"setStakingStatus","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"uint256","name":"_newStrength","type":"uint256"},{"internalType":"uint256","name":"_newAgility","type":"uint256"},{"internalType":"uint256","name":"_newIntelligence","type":"uint256"}],"name":"updateCharacterStats","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bool","name":"_isWinner","type":"bool"}],"name":"updateCombatHistory","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdrawFunds","outputs":[],"stateMutability":"nonpayable","type":"function"}];
         const gameEngineABI = [{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"stakeTime","type":"uint256"}],"name":"CharacterStaked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"gainedStrength","type":"uint256"}],"name":"CharacterUnstaked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"winnerId","type":"uint256"},{"indexed":true,"internalType":"uint256","name":"loserId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"winnerPower","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"loserPower","type":"uint256"}],"name":"CombatResolved","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[],"name":"BASE_STAT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"CHARACTER_NFT","outputs":[{"internalType":"contract IGodLevelCharacterNFT","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"SECONDS_PER_PERIOD","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"STRENGTH_GAIN_PER_PERIOD","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"}],"name":"calculatePower","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"from","type":"address"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes","name":"","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"originalOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenIdA","type":"uint256"},{"internalType":"uint256","name":"_tokenIdB","type":"uint256"}],"name":"resolveCombat","outputs":[{"internalType":"uint256","name":"winnerId","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"}],"name":"stake","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"stakeStartTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"}],"name":"unstake","outputs":[],"stateMutability":"nonpayable","type":"function"}];
         
         const fujiChainId = '0xa869';
@@ -150,7 +131,7 @@
         const unstakeActions = document.getElementById('unstakeActions');
         const approveBtn = document.getElementById('approveBtn');
         const stakeBtn = document.getElementById('stakeBtn');
-        const unstakeBtn = document.getElementById('unstakeBtn'); // Reference to unstake button
+        const unstakeBtn = document.getElementById('unstakeBtn'); 
 
         const tokenAInput = document.getElementById('tokenAInput');
         const tokenBInput = document.getElementById('tokenBInput');
@@ -164,17 +145,17 @@
         let gameEngineInterface;
         let lookedUpTokenId = null;
 
-        // --- Core Wallet Logic (From Sample) ---
+        // --- Core Wallet Logic ---
         
         async function connectWallet() {
-            if (typeof window.ethereum === 'undefined') { return showMessage('MetaMask is not installed!', 'error'); }
+            if (typeof window.ethereum === 'undefined') { return showMessage('MetaMask is not installed! Please install it to continue.', 'error'); }
             setLoading(true, [connectWalletBtn]);
             try {
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 handleAccountsChanged(accounts);
             } catch (error) {
-                if (error.code === -32002) { showMessage('Connection request already pending. Check MetaMask.', 'error'); } 
-                else { showMessage('Wallet connection rejected.', 'error'); }
+                if (error.code === -32002) { showMessage('Connection request pending. Please check your MetaMask.', 'error'); } 
+                else { showMessage('Wallet connection rejected. Please try again.', 'error'); }
                 console.error("Connection failed:", error);
             }
             setLoading(false, [connectWalletBtn]);
@@ -187,13 +168,13 @@
                 gameContainer.classList.add('hidden');
                 walletAddressEl.textContent = '';
                 characterCard.classList.add('hidden');
-                showMessage('Wallet disconnected. Please connect to play.', 'info');
+                showMessage('Wallet disconnected. Please connect to continue.', 'info');
             } else if (accounts[0] !== currentAccount) {
                 currentAccount = accounts[0];
                 connectWalletContainer.classList.add('hidden');
                 gameContainer.classList.remove('hidden');
                 walletAddressEl.textContent = `Connected: ${currentAccount.substring(0,6)}...${currentAccount.substring(currentAccount.length - 4)}`;
-                showMessage('Wallet connected. Ready to play!', 'success');
+                showMessage('Wallet connected successfully. Ready to play!', 'success');
                 checkAndSwitchNetwork();
             }
         }
@@ -207,7 +188,7 @@
                 }
             } catch (switchError) {
                 if (switchError.code === 4902) { await addFujiNetwork(); } 
-                else { showMessage('Please switch to Fuji Testnet in MetaMask.', 'error'); }
+                else { showMessage('Incorrect Network. Please switch to the Avalanche Fuji Testnet in MetaMask.', 'error'); }
             }
         }
 
@@ -223,15 +204,15 @@
                         blockExplorerUrls: [fujiExplorerUrl]
                     }],
                 });
-            } catch (addError) { showMessage('Could not add Fuji network.', 'error'); }
+            } catch (addError) { showMessage('Failed to add Fuji network. Please add it manually in MetaMask.', 'error'); }
         }
 
-        // --- Game Interaction Logic ---
+        // --- Game Interaction Logic (Messages Updated) ---
 
         async function handleMint() {
-            if (!nftInterface || !currentAccount) return showMessage('Wallet not connected or interface not loaded.', 'error');
+            if (!nftInterface || !currentAccount) return showMessage('Please connect your wallet first.', 'error');
             setLoading(true);
-            showMessage('Confirm transaction in your wallet...', 'info');
+            showMessage('Confirm mint transaction in your wallet...', 'info');
 
             const txParams = {
                 from: currentAccount,
@@ -243,14 +224,14 @@
 
             try {
                 const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
-                showMessage('Minting... Waiting for confirmation.', 'info');
+                showMessage('Minting character... Waiting for confirmation.', 'info');
                 const receipt = await waitForTransaction(txHash);
 
                 if (receipt.status === '0x1') {
                     const transferLog = receipt.logs.find(log => 
                         log.address.toLowerCase() === nftContractAddress.toLowerCase() &&
                         log.topics[0] === nftInterface.getEventTopic("Transfer") &&
-                        log.topics[1] === '0x0000000000000000000000000000000000000000000000000000000000000000' && // Mint event has from address as zero
+                        log.topics[1] === '0x0000000000000000000000000000000000000000000000000000000000000000' &&
                         log.topics[2].toLowerCase() === "0x" + currentAccount.substring(2).padStart(64, '0').toLowerCase()
                     );
                     
@@ -261,30 +242,29 @@
                         handleLookup(); 
                     } else {
                          console.error("Could not find Transfer event log for minting.", receipt.logs);
-                         showMessage('Mint successful, but could not decode Token ID from logs.', 'info', txHash);
+                         showMessage('Mint successful, but could not auto-detect Token ID. Check your wallet on Snowtrace.', 'info', txHash);
                     }
                 } else { 
-                    showMessage('Transaction failed. Please try again.', 'error', txHash);
+                    showMessage('Mint transaction failed. Please try again.', 'error', txHash);
                 }
             } catch (error) {
-                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
-                else { showMessage('An error occurred during minting.', 'error'); console.error(error); }
+                if (error.code === 4001) { showMessage('Mint transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred during minting. See console for details.', 'error'); console.error(error); }
             }
             setLoading(false);
         }
 
         async function handleLookup() {
-             if (!nftInterface || !gameEngineInterface || !currentAccount) return showMessage('Wallet not connected or interface not loaded.', 'error');
+             if (!nftInterface || !gameEngineInterface || !currentAccount) return showMessage('Please connect your wallet first.', 'error');
             const tokenId = tokenIdInput.value;
-            if (!tokenId) { return showMessage('Please enter a Token ID.', 'error'); }
+            if (!tokenId) { return showMessage('Please enter a Character Token ID.', 'error'); }
 
             setLoading(true, [lookupTokenBtn]);
-            showMessage('Looking up token...', 'info');
+            showMessage('Finding character...', 'info');
             characterCard.classList.add('hidden');
-            lookedUpTokenId = null; // Reset looked up token
+            lookedUpTokenId = null; 
 
             try {
-                // Get owner directly first
                 let ownerAddress;
                 try {
                      const ownerData = nftInterface.encodeFunctionData("ownerOf", [tokenId]);
@@ -292,30 +272,27 @@
                      ownerAddress = ethers.utils.defaultAbiCoder.decode(['address'], ownerHex)[0];
                 } catch(ownerError) {
                      console.error("Error fetching owner:", ownerError);
-                     showMessage(`Token ID ${tokenId} likely does not exist.`, 'error');
+                     showMessage(`Character #${tokenId} not found. Please check the ID.`, 'error');
                      setLoading(false, [lookupTokenBtn]);
-                     return; // Stop if ownerOf fails
+                     return; 
                 }
 
 
                 let isStaked = false;
                 let isOwnedByUser = false;
 
-                // Check if the Game Engine contract owns the NFT (meaning it's staked)
                 if (ownerAddress.toLowerCase() === gameEngineContractAddress.toLowerCase()) {
                     isStaked = true;
-                    // If staked, check the originalOwner mapping in the GameEngine
                     const originalOwnerData = gameEngineInterface.encodeFunctionData("originalOwner", [tokenId]);
                     const originalOwnerHex = await window.ethereum.request({ method: 'eth_call', params: [{ to: gameEngineContractAddress, data: originalOwnerData }, 'latest'] });
                     const originalOwnerAddress = ethers.utils.defaultAbiCoder.decode(['address'], originalOwnerHex)[0];
                     
                     if (originalOwnerAddress.toLowerCase() === currentAccount.toLowerCase()) {
-                        isOwnedByUser = true; // User staked this token
+                        isOwnedByUser = true; 
                     } else {
-                        isOwnedByUser = false; // Someone else staked this token
+                        isOwnedByUser = false; 
                     }
                 } else {
-                    // NFT is not owned by the GameEngine, check if it's owned by the current user directly
                     isStaked = false;
                     if (ownerAddress.toLowerCase() === currentAccount.toLowerCase()) {
                         isOwnedByUser = true;
@@ -326,18 +303,16 @@
 
                 if (!isOwnedByUser) {
                     if (isStaked) {
-                         showMessage(`Token ID ${tokenId} is staked by another user.`, 'info');
+                         showMessage(`Character #${tokenId} is staked by another user.`, 'info');
                     } else {
-                         showMessage(`You do not own Token ID ${tokenId}. Owner: ${ownerAddress.substring(0,6)}...`, 'info');
+                         showMessage(`You do not own Character #${tokenId}.`, 'info');
                     }
                      setLoading(false, [lookupTokenBtn]);
                      return;
                 }
 
-                // If owned by user (staked or not), get stats
                 const statsData = nftInterface.encodeFunctionData("characterStats", [tokenId]);
                 const statsHex = await window.ethereum.request({ method: 'eth_call', params: [{ to: nftContractAddress, data: statsData }, 'latest'] });
-                // Ethers v5 returns an array + object structure. Access by index or name.
                 const stats = nftInterface.decodeFunctionResult("characterStats", statsHex);
 
                 cardTokenId.textContent = tokenId;
@@ -347,34 +322,33 @@
                 statWins.textContent = stats.wins.toString();
                 statLosses.textContent = stats.losses.toString();
                 
-                // Use the isStaked flag determined earlier
                 if (isStaked) {
                     statStaked.textContent = "Staked";
                     statStaked.className = "font-bold text-yellow-400";
                     stakeActions.classList.add('hidden');
-                    unstakeActions.classList.remove('hidden'); // Show unstake button
+                    unstakeActions.classList.remove('hidden'); 
                 } else {
                     statStaked.textContent = "Unstaked";
                     statStaked.className = "font-bold text-blue-400";
-                    stakeActions.classList.remove('hidden'); // Show approve/stake buttons
+                    stakeActions.classList.remove('hidden'); 
                     unstakeActions.classList.add('hidden');
                 }
 
                 characterCard.classList.remove('hidden');
-                showMessage(`Successfully loaded your Token ID ${tokenId}.`, 'success');
-                lookedUpTokenId = tokenId; // Store the currently viewed token ID
+                showMessage(`Successfully loaded Character #${tokenId}.`, 'success');
+                lookedUpTokenId = tokenId; 
 
             } catch (error) {
                 console.error("Lookup error:", error);
-                showMessage('Failed to look up token stats. Check console.', 'error');
+                showMessage('Failed to load character stats. Check console for details.', 'error');
             }
             setLoading(false, [lookupTokenBtn]);
         }
 
         async function handleApprove() {
-            if (!nftInterface || !currentAccount || !lookedUpTokenId) return showMessage('Wallet not connected or no token looked up.', 'error');
+            if (!nftInterface || !currentAccount || !lookedUpTokenId) return showMessage('Please find your character before approving.', 'error');
             setLoading(true);
-            showMessage('Confirm approval in your wallet...', 'info');
+            showMessage('Confirm approval transaction in your wallet...', 'info');
 
             const txParams = {
                 from: currentAccount,
@@ -389,41 +363,38 @@
                 const receipt = await waitForTransaction(txHash);
 
                 if (receipt.status === '0x1') {
-                    showMessage(`Game Engine approved for Token ID ${lookedUpTokenId}! You can now stake.`, 'success', txHash);
-                    // Optionally refresh lookup to reflect approval status if needed
+                    showMessage(`Approval successful for Character #${lookedUpTokenId}! You can now stake.`, 'success', txHash);
                 } else { 
-                    showMessage('Approval failed. Please try again.', 'error', txHash);
+                    showMessage('Approval transaction failed. Please try again.', 'error', txHash);
                 }
             } catch (error) {
-                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
-                else { showMessage('An error occurred during approval.', 'error'); console.error(error); }
+                if (error.code === 4001) { showMessage('Approval transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred during approval. See console for details.', 'error'); console.error(error); }
             }
             setLoading(false);
         }
 
         async function handleStake() {
-            if (!gameEngineInterface || !nftInterface || !currentAccount || !lookedUpTokenId) return showMessage('Wallet not connected or no token looked up.', 'error');
+            if (!gameEngineInterface || !nftInterface || !currentAccount || !lookedUpTokenId) return showMessage('Please find your character before staking.', 'error');
             setLoading(true);
-            showMessage('Checking approval and confirming stake in your wallet...', 'info');
+            showMessage('Confirm stake transaction in your wallet...', 'info');
 
-            // Check if approved first
             try {
                 const data = nftInterface.encodeFunctionData("getApproved", [lookedUpTokenId]);
                 const approvedHex = await window.ethereum.request({ method: 'eth_call', params: [{ to: nftContractAddress, data: data }, 'latest'] });
                 const approvedAddress = ethers.utils.defaultAbiCoder.decode(['address'], approvedHex)[0];
 
                 if (approvedAddress.toLowerCase() !== gameEngineContractAddress.toLowerCase()) {
-                    showMessage('You must approve the Game Engine before staking. Click "Approve Engine".', 'error');
+                    showMessage('Approval required. Please click "1. Approve Engine" before staking.', 'error');
                     setLoading(false);
                     return;
                 }
             } catch (e) {
-                showMessage('Could not verify approval status. Please try again.', 'error');
+                showMessage('Could not verify approval. Please try again.', 'error');
                 setLoading(false);
                 return;
             }
 
-            // Proceed to stake
             const txParams = {
                 from: currentAccount,
                 to: gameEngineContractAddress,
@@ -433,67 +404,66 @@
             
             try {
                 const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
-                showMessage('Staking... Waiting for confirmation.', 'info');
+                showMessage('Staking character... Waiting for confirmation.', 'info');
                 const receipt = await waitForTransaction(txHash);
 
                 if (receipt.status === '0x1') {
-                    showMessage(`Token ID ${lookedUpTokenId} is now staked! 💪`, 'success', txHash);
-                    handleLookup(); // Refresh card to show 'Staked' status and 'Unstake' button
+                    showMessage(`Character #${lookedUpTokenId} is now staked! 💪`, 'success', txHash);
+                    handleLookup(); 
                 } else { 
                     showMessage('Staking transaction failed. Please try again.', 'error', txHash);
                 }
             } catch (error) {
-                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
-                else { showMessage('An error occurred during staking.', 'error'); console.error(error); }
+                if (error.code === 4001) { showMessage('Staking transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred during staking. See console for details.', 'error'); console.error(error); }
             }
             setLoading(false);
         }
 
-        // --- UNSTAKE FUNCTION ---
         async function handleUnstake() {
-            if (!gameEngineInterface || !currentAccount || !lookedUpTokenId) return showMessage('Wallet not connected or no token looked up.', 'error');
+            if (!gameEngineInterface || !currentAccount || !lookedUpTokenId) return showMessage('Please find your character before unstaking.', 'error');
             setLoading(true);
-            showMessage('Confirm unstaking in your wallet...', 'info');
+            showMessage('Confirm unstake transaction in your wallet...', 'info');
 
             const txParams = {
                 from: currentAccount,
                 to: gameEngineContractAddress,
-                gas: '0x7A120', // 500,000 gas (generous for state changes + transfer + stat update)
+                gas: '0x7A120', // 500,000 gas 
                 data: gameEngineInterface.encodeFunctionData("unstake", [lookedUpTokenId]),
             };
             
             try {
                 const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
-                showMessage('Unstaking... Waiting for confirmation.', 'info');
+                showMessage('Unstaking character... Waiting for confirmation.', 'info');
                 const receipt = await waitForTransaction(txHash);
 
                 if (receipt.status === '0x1') {
-                    showMessage(`Token ID ${lookedUpTokenId} has been unstaked! Stats updated. ✨`, 'success', txHash);
-                    handleLookup(); // Refresh card to show 'Unstaked' status, updated stats, and 'Stake' buttons
+                    showMessage(`Character #${lookedUpTokenId} has been unstaked! Stats updated. ✨`, 'success', txHash);
+                    handleLookup(); 
                 } else { 
                     showMessage('Unstaking transaction failed. Please try again.', 'error', txHash);
                 }
             } catch (error) {
-                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
-                else { showMessage('An error occurred during unstaking.', 'error'); console.error(error); }
+                if (error.code === 4001) { showMessage('Unstaking transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred during unstaking. See console for details.', 'error'); console.error(error); }
             }
             setLoading(false);
         }
 
 
         async function handleFight() {
-             if (!gameEngineInterface || !nftInterface || !currentAccount) return showMessage('Wallet not connected or interface not loaded.', 'error');
+             if (!gameEngineInterface || !nftInterface || !currentAccount) return showMessage('Please connect your wallet first.', 'error');
             const tokenIdA = tokenAInput.value;
             const tokenIdB = tokenBInput.value;
-            if (!tokenIdA || !tokenIdB || tokenIdA === tokenIdB) { return showMessage('Please enter two different Token IDs.', 'error'); }
+            if (!tokenIdA || !tokenIdB || tokenIdA === tokenIdB) { return showMessage('Please enter two different Character IDs to fight.', 'error'); }
 
             setLoading(true);
-            showMessage('Confirm combat in your wallet...', 'info');
+            showMessage('Confirm combat transaction in your wallet...', 'info');
 
             const txParams = {
                 from: currentAccount,
                 to: gameEngineContractAddress,
-                gas: '0x7A120', // 500,000 gas (generous for checks, calc, and 2 history updates)
+                gas: '0x7A120', // 500,000 gas
                 data: gameEngineInterface.encodeFunctionData("resolveCombat", [tokenIdA, tokenIdB]),
             };
             
@@ -512,25 +482,24 @@
                         const decodedLog = gameEngineInterface.decodeEventLog("CombatResolved", combatLog.data, combatLog.topics);
                         const winnerId = decodedLog.winnerId.toString();
                         const loserId = decodedLog.loserId.toString();
-                         // Refresh lookup if the currently viewed token was involved
+                        
                         if (lookedUpTokenId && (lookedUpTokenId === winnerId || lookedUpTokenId === loserId)) {
-                             handleLookup(); // Refresh stats after combat
+                             handleLookup(); 
                         }
-                         showMessage(`Combat finished! Winner: Token ${winnerId} 🏆 | Loser: Token ${loserId}.`, 'success', txHash);
+                         showMessage(`Combat finished! Winner: Character #${winnerId} 🏆 | Loser: Character #${loserId}.`, 'success', txHash);
 
                     } else {
-                        showMessage('Combat transaction successful, but result log not found.', 'info', txHash);
-                         // Refresh lookup if the currently viewed token might have been involved
+                         showMessage('Combat successful, but result could not be read. Check Snowtrace.', 'info', txHash);
                         if (lookedUpTokenId && (lookedUpTokenId === tokenIdA || lookedUpTokenId === tokenIdB)) {
                              handleLookup(); 
                         }
                     }
                 } else { 
-                    showMessage('Combat failed. Ensure both tokens are unstaked and owned by you.', 'error', txHash);
+                    showMessage('Combat failed. Ensure both characters are unstaked and owned by you.', 'error', txHash);
                 }
             } catch (error) {
-                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
-                else { showMessage('An error occurred during combat.', 'error'); console.error(error); }
+                if (error.code === 4001) { showMessage('Combat transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred during combat. See console for details.', 'error'); console.error(error); }
             }
             setLoading(false);
         }
@@ -538,7 +507,7 @@
         // --- Utility Functions ---
 
         function waitForTransaction(txHash) {
-            return new Promise((resolve, reject) => { // Added reject for clarity
+            return new Promise((resolve, reject) => { 
                  if (typeof window.ethereum === 'undefined') return reject('MetaMask not available');
                 const interval = setInterval(async () => {
                     try {
@@ -549,7 +518,6 @@
                         }
                     } catch(e) { 
                          console.error("Error fetching receipt:", e); 
-                         // Consider whether to reject or keep polling based on error type
                     }
                 }, 2000);
             });
@@ -570,9 +538,6 @@
                     btn.disabled = false;
                     if (btn.dataset.originalText) {
                         btn.innerHTML = btn.dataset.originalText;
-                         // Clear the stored text after restoring
-                         // delete btn.dataset.originalText; 
-                         // Keep it stored in case loading happens again quickly
                     }
                 }
              });
@@ -595,7 +560,6 @@
         // --- Initial Load & Event Listeners ---
         function init() {
             try {
-                // Check ABIs more carefully
                 if (!Array.isArray(nftContractABI) || nftContractABI.length === 0 || !nftContractAddress) {
                      throw new Error('NFT Contract ABI or Address is missing or invalid.');
                 }
@@ -605,46 +569,40 @@
 
                 nftInterface = new ethers.utils.Interface(nftContractABI);
                 gameEngineInterface = new ethers.utils.Interface(gameEngineABI);
-                 console.log("Interfaces created successfully."); // Debug log
+                 console.log("Interfaces created successfully.");
 
 
                 if (typeof window.ethereum !== 'undefined') {
                     window.ethereum.on('accountsChanged', handleAccountsChanged);
                     window.ethereum.on('chainChanged', (chainId) => {
                          console.log("Network changed to:", chainId);
-                         // Optionally check if it's the correct chain and reload or show message
                          window.location.reload(); 
                     });
-                    // Check initial accounts
                     window.ethereum.request({ method: 'eth_accounts' })
-                        .then(handleAccountsChanged) // This will also call checkAndSwitchNetwork if accounts are found
+                        .then(handleAccountsChanged) 
                         .catch(err => console.error("Error fetching initial accounts:", err));
                 } else {
-                    showMessage('Please install MetaMask to play!', 'error');
+                    showMessage('Please install MetaMask to use this app!', 'error');
                     connectWalletBtn.disabled = true;
                 }
             } catch (error) {
                 console.error("Initialization failed:", error);
-                showMessage(`Error initializing app: ${error.message}. Check console.`, 'error');
-                // Disable all buttons if init fails
+                showMessage(`Error initializing app: ${error.message}. Check console for details.`, 'error');
                 allButtons.forEach(btn => { if(btn) btn.disabled = true; });
             }
         }
         
-        // --- Attach Event Listeners ---
-         // Ensure DOM is fully loaded before attaching listeners (though script at end usually suffices)
-         document.addEventListener('DOMContentLoaded', () => {
-             // Make sure elements exist before adding listeners
+        document.addEventListener('DOMContentLoaded', () => {
              if (connectWalletBtn) connectWalletBtn.addEventListener('click', connectWallet);
              if (mintBtn) mintBtn.addEventListener('click', handleMint);
              if (lookupTokenBtn) lookupTokenBtn.addEventListener('click', handleLookup);
              if (approveBtn) approveBtn.addEventListener('click', handleApprove);
              if (stakeBtn) stakeBtn.addEventListener('click', handleStake);
-             if (unstakeBtn) unstakeBtn.addEventListener('click', handleUnstake); // Listener for unstake
+             if (unstakeBtn) unstakeBtn.addEventListener('click', handleUnstake); 
              if (fightBtn) fightBtn.addEventListener('click', handleFight);
 
-             init(); // Call init after attaching listeners
-         });
+             init(); 
+        });
 
     </script>
 </body>
