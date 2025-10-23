@@ -3,1035 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avalanche Arena - Season 1</title>
-    <!-- Load Tailwind CSS -->
+    <title>God Level Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Ethers.js for Web3 interactions (used for ABI encoding/decoding) -->
-    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
         body { font-family: 'Poppins', sans-serif; background-color: #1a1a1a; color: #f0f0f0; }
-        .stat-bar { height: 1.5rem; }
-        
-        /* Styles adapted for a professional look */
         .avax-logo { width: 40px; height: 40px; margin-right: 10px; }
-        .btn-primary { 
-            background: linear-gradient(90deg, #5c62d5, #44499d); 
-            transition: all 0.3s ease; 
+        .btn-primary { background: linear-gradient(90deg, #e84142, #b52525); transition: all 0.3s ease; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(232, 65, 66, 0.4); }
+        .btn-primary:disabled { background: #4a4a4a; color: #888; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary { background: #3a3a3a; border: 1px solid #555; transition: all 0.3s ease; }
+        .btn-secondary:hover:not(:disabled) { background: #4a4a4a; border-color: #777; transform: translateY(-2px); }
+        .btn-secondary:disabled { background: #2a2a2a; color: #666; cursor: not-allowed; border-color: #444; }
+        .glass-panel { background: rgba(40, 40, 40, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #555;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
         }
-        .btn-primary:hover:not(:disabled) { 
-            transform: translateY(-2px); 
-            box-shadow: 0 4px 40px rgba(92, 98, 213, 0.4); 
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
-        .btn-primary:disabled { 
-            background: #4a4a4a; 
-            cursor: not-allowed; 
-            transform: none; 
-            box-shadow: none; 
-        }
-        .glass-panel { 
-            background: rgba(40, 40, 40, 0.6); 
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-        }
-        .card-glow { box-shadow: 0 0 15px rgba(100, 200, 255, 0.5); }
-
-        /* Animation for visual flair */
-        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        .fade-in { animation: fade-in 0.5s ease-out; }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen p-4 sm:p-8">
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <!-- Header & Wallet Status -->
-    <header class="text-center mb-8">
-        <div class="flex items-center justify-center mb-2">
-            <!-- Avalanche Logo SVG -->
-            <svg class="avax-logo" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 32C24.8366 32 32 24.8366 32 16C32 7.16344 24.8366 0 16 0C7.16344 0 0 7.16344 0 16C0 24.8366 7.16344 32 16 32ZM13.8643 9.49281L19.2941 9.49281L23.7314 22.5072L18.3016 22.5072L16.8973 18.6738L9.2066 18.6738L7.8023 22.5072L2.37255 22.5072L13.8643 9.49281ZM16.0501 12.3392L11.5369 16.096L14.6133 16.096L16.0501 12.3392Z" fill="#e84142"/></svg>
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-indigo-400 tracking-tight">
-                Avalanche Arena
-            </h1>
-        </div>
-        <p class="text-gray-400">Season 1: Deterministic Staking & Combat PoC</p>
-        <div id="wallet-status" class="mt-4 p-3 bg-gray-800 rounded-lg shadow-lg">
-            <p id="walletAddress" class="text-sm font-medium text-yellow-400 truncate">Wallet Status: Disconnected</p>
-        </div>
-        <div id="messageArea" class="mt-4 text-center min-h-[24px]"><p id="messageText" class="text-gray-300"></p></div>
-    </header>
-
-    <main class="max-w-7xl mx-auto">
+    <div class="w-full max-w-2xl mx-auto p-6 md:p-8 rounded-2xl shadow-2xl glass-panel text-center space-y-8">
         
-        <div id="connectWalletContainer" class="text-center mb-8">
-            <button id="connectWalletBtn" class="py-3 px-6 rounded-xl font-semibold text-lg text-white btn-primary">Connect Wallet</button>
-        </div>
+        <header>
+            <div class="flex items-center justify-center mb-2">
+                <svg class="avax-logo" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 32C24.8366 32 32 24.8366 32 16C32 7.16344 24.8366 0 16 0C7.16344 0 0 7.16344 0 16C0 24.8366 7.16344 32 16 32ZM13.8643 9.49281L19.2941 9.49281L23.7314 22.5072L18.3016 22.5072L16.8973 18.6738L9.2066 18.6738L7.8023 22.5072L2.37255 22.5072L13.8643 9.49281ZM16.0501 12.3392L11.5369 16.096L14.6133 16.096L16.0501 12.3392Z" fill="#E84142"/></svg>
+                <h1 class="text-3xl font-bold text-white tracking-tight">God Level Game</h1>
+            </div>
+            <p class="text-gray-400">Mint, Stake, and Battle your Characters</p>
+        </header>
 
-        <div id="gameContainer" class="hidden">
-            <!-- Mint and Staking Section -->
-            <section class="mb-10 p-6 bg-gray-800 rounded-xl shadow-2xl card-glow">
-                <h2 class="text-3xl font-bold mb-4 text-white">Character Portfolio & Staking</h2>
-                <button id="mint-nft-btn" class="w-full sm:w-auto px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition duration-200 shadow-md transform hover:scale-[1.02]">
-                    Mint New Character (0.05 AVAX)
-                </button>
-                
-                <div id="nft-list" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- NFT Cards will be injected here -->
-                    <p id="loading-nfts" class="text-gray-500 col-span-full">Loading your NFTs...</p>
+        <div id="connectWalletContainer">
+            <button id="connectWalletBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-lg text-white btn-primary">Connect Wallet</button>
+        </div>
+        <p id="walletAddress" class="text-gray-500 text-sm truncate"></p>
+
+        <main id="gameContainer" class="hidden space-y-8">
+            
+            <section class="bg-gray-800/50 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Mint Character</h2>
+                <p class="text-gray-300 mb-4">Mint a new God Level Character NFT. All characters start with base stats of 100.</p>
+                <button id="mintBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-lg text-white btn-primary">Mint (0.05 AVAX)</button>
+            </section>
+
+            <section class="bg-gray-800/50 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Manage Character</h2>
+                <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                    <input id="tokenIdInput" type="number" placeholder="Enter Token ID" class="w-full sm:w-2/3">
+                    <button id="lookupTokenBtn" class="w-full sm:w-1/3 py-2 px-4 rounded-lg font-semibold text-white btn-secondary">Look Up</button>
+                </div>
+
+                <div id="characterCard" class="hidden bg-gray-900/60 rounded-lg p-4 text-left space-y-3">
+                    <h3 class="text-xl font-bold text-center text-white">Token #<span id="cardTokenId"></span></h3>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <p><span class="text-gray-400">Strength:</span> <span id="statStr" class="font-bold text-white"></span></p>
+                        <p><span class="text-gray-400">Agility:</span> <span id="statAgi" class="font-bold text-white"></span></p>
+                        <p><span class="text-gray-400">Intelligence:</span> <span id="statInt" class="font-bold text-white"></span></p>
+                        <p><span class="text-gray-400">Status:</span> <span id="statStaked" class="font-bold text-white"></span></p>
+                        <p><span class="text-gray-400">Wins:</span> <span id="statWins" class="font-bold text-green-400"></span></p>
+                        <p><span class="text-gray-400">Losses:</span> <span id="statLosses" class="font-bold text-red-400"></span></p>
+                    </div>
+                    <div id="stakeActions" class="hidden pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button id="approveBtn" class="w-full py-2 px-4 rounded-lg font-semibold text-white btn-secondary">Approve Engine</button>
+                        <button id="stakeBtn" class="w-full py-2 px-4 rounded-lg font-semibold text-white btn-primary">Stake Character</button>
+                    </div>
+                    <div id="unstakeActions" class="hidden pt-2">
+                        <button id="unstakeBtn" class="w-full py-2 px-4 rounded-lg font-semibold text-white btn-primary">Unstake Character</button>
+                    </div>
                 </div>
             </section>
 
-            <!-- Combat Arena Section -->
-            <section class="p-6 bg-gray-800 rounded-xl shadow-2xl card-glow border-4 border-indigo-600">
-                <h2 class="text-3xl font-bold mb-6 text-indigo-400">The Arena: Deterministic Showdown</h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <!-- Challenger A Selection -->
-                    <div>
-                        <label for="challenger-a" class="block text-lg font-medium mb-2">Challenger A (NFT ID):</label>
-                        <select id="challenger-a" class="w-full p-3 bg-gray-700 rounded-lg text-white appearance-none"></select>
-                    </div>
-                    
-                    <!-- Challenger B Selection -->
-                    <div>
-                        <label for="challenger-b" class="block text-lg font-medium mb-2">Challenger B (NFT ID):</label>
-                        <select id="challenger-b" class="w-full p-3 bg-gray-700 rounded-lg text-white appearance-none"></select>
-                    </div>
-                    
-                    <!-- Combat Button -->
-                    <div class="flex items-end">
-                        <button id="resolve-combat-btn" class="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition duration-200 shadow-md transform hover:scale-[1.02]" disabled>
-                            Simulate & Resolve Combat
-                        </button>
-                    </div>
+            <section class="bg-gray-800/50 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Combat Zone</h2>
+                <p class="text-gray-300 mb-4">Select two of your (unstaked) characters to fight. The outcome is deterministic.</p>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input id="tokenAInput" type="number" placeholder="Token ID A" class="w-full">
+                    <input id="tokenBInput" type="number" placeholder="Token ID B" class="w-full">
                 </div>
-
-                <!-- Combat Simulation Display -->
-                <div id="combat-display" class="bg-gray-900 p-4 sm:p-8 rounded-lg min-h-[150px] flex flex-col justify-center items-center text-center">
-                    <p class="text-gray-500">Select two unstaked characters to begin the deterministic combat simulation.</p>
-                </div>
+                <button id="fightBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-lg text-white btn-primary">Resolve Combat</button>
             </section>
-        </div>
-    </main>
-
-    <!-- Global Message/Error Modal -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full text-center">
-            <h3 id="modal-title" class="text-xl font-bold mb-4 text-indigo-400">Processing...</h3>
-            <p id="modal-message" class="text-gray-300">Please wait while the transaction confirms on the Fuji C-Chain.</p>
-            <p id="modal-tx-link" class="mt-4 text-sm text-blue-400 hidden"><a href="#" target="_blank">View Transaction</a></p>
-            <button id="modal-close-btn" class="mt-6 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg">Close</button>
-        </div>
+        </main>
+        
+        <footer id="messageArea" class="mt-4 text-center min-h-[24px]">
+            <p id="messageText" class="text-gray-300"></p>
+        </footer>
     </div>
 
-    <!-- JavaScript Web3 & Game Logic -->
     <script>
-        // --- HARDCODED CONTRACT ADDRESSES (The immutable anchors) ---
-        const CHAR_NFT_ADDRESS = '0xCc88DcFed964C96508ffc799e5e48926cc3a2dE1';
-        const GAME_ENGINE_ADDRESS = '0x4F4e61F010190D377763d3417A589c5e16076DCB';
-        const FUJI_CHAIN_ID = '0xa869'; // Avalanche Fuji C-Chain in Hex
-        const GAS_LIMIT = '0x30D40'; // 200,000 gas limit in hex, mirroring sample structure
-
-        // --- ABI Snippets (Full, Generated ABIs) ---
+        // --- Configuration ---
+        const nftContractAddress = "0xCc88DcFed964C96508ffc799e5e48926cc3a2dE1";
+        const gameEngineContractAddress = "0x4F4e61F010190D377763d3417A589c5e16076DCB";
+        const nftContractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"MINT_PRICE","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"OWNER_WITHDRAWAL_ADDRESS","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"characterStats","outputs":[{"internalType":"uint256","name":"strength","type":"uint256"},{"internalType":"uint256","name":"agility","type":"uint256"},{"internalType":"uint256","name":"intelligence","type":"uint256"},{"internalType":"bool","name":"isStaked","type":"bool"},{"internalType":"uint256","name":"wins","type":"uint256"},{"internalType":"uint256","name":"losses","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"gameEngineAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],";"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"safeMint","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_gameEngineAddress","type":"address"}],"name":"setGameEngine","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bool","name":"_isStaked","type":"bool"}],"name":"setStakingStatus","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type_":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"uint256","name":"_newStrength","type":"uint256"},{"internalType":"uint256","name":"_newAgility","type":"uint256"},{"internalType":"uint256","name":"_newIntelligence","type":"uint256"}],"name":"updateCharacterStats","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bool","name":"_isWinner","type":"bool"}],"name":"updateCombatHistory","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdrawFunds","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+        const gameEngineABI = [{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"stakeTime","type":"uint256"}],"name":"CharacterStaked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"gainedStrength","type":"uint256"}],"name":"CharacterUnstaked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"winnerId","type":"uint256"},{"indexed":true,"internalType":"uint256","name":"loserId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"winnerPower","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"loserPower","type":"uint256"}],"name":"CombatResolved","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[],"name":"BASE_STAT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"CHARACTER_NFT","outputs":[{"internalType":"contract IGodLevelCharacterNFT","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"SECONDS_PER_PERIOD","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"STRENGTH_GAIN_PER_PERIOD","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"}],"name":"calculatePower","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"from","type":"address"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes","name":"","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"originalOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenIdA","type":"uint256"},{"internalType":"uint256","name":"_tokenIdB","type":"uint256"}],"name":"resolveCombat","outputs":[{"internalType":"uint256","name":"winnerId","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"}],"name":"stake","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"stakeStartTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"}],"name":"unstake","outputs":[],"stateMutability":"nonpayable","type":"function"}];
         
-        // ABI for GodLevelCharacterNFT.sol
-        const CHAR_NFT_ABI = [
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "approved",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "Approval",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "operator",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "bool",
-				"name": "approved",
-				"type": "bool"
-			}
-		],
-		"name": "ApprovalForAll",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "previousOwner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipTransferred",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "Transfer",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "MINT_PRICE",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "OWNER_WITHDRAWAL_ADDRESS",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "approve",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "characterStats",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "strength",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "agility",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "intelligence",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "isStaked",
-				"type": "bool"
-			},
-			{
-				"internalType": "uint256",
-				"name": "wins",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "losses",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "gameEngineAddress",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "getApproved",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "operator",
-				"type": "address"
-			}
-		],
-		"name": "isApprovedForAll",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "name",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "ownerOf",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			}
-		],
-		"name": "safeMint",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "safeTransferFrom",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes",
-				"name": "_data",
-				"type": "bytes"
-			}
-		],
-		"name": "safeTransferFrom",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "operator",
-				"type": "address"
-			},
-			{
-				"internalType": "bool",
-				"name": "approved",
-				"type": "bool"
-			}
-		],
-		"name": "setApprovalForAll",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_gameEngineAddress",
-				"type": "address"
-			}
-		],
-		"name": "setGameEngine",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_tokenId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "_isStaked",
-				"type": "bool"
-			}
-		],
-		"name": "setStakingStatus",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes4",
-				"name": "interfaceId",
-				"type": "bytes4"
-			}
-		],
-		"name": "supportsInterface",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "symbol",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "tokenURI",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_tokenId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_newStrength",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_newAgility",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_newIntelligence",
-				"type": "uint256"
-			}
-		],
-		"name": "updateCharacterStats",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_tokenId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "_isWinner",
-				"type": "bool"
-			}
-		],
-		"name": "updateCombatHistory",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdrawFunds",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	}
-];
-        
-        // ABI for GameEngine.sol
-        const GAME_ENGINE_ABI = [
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "stakeTime",
-				"type": "uint256"
-			}
-		],
-		"name": "CharacterStaked",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "gainedStrength",
-				"type": "uint256"
-			}
-		],
-		"name": "CharacterUnstaked",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "winnerId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "loserId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "winnerPower",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "loserPower",
-				"type": "uint256"
-			}
-		],
-		"name": "CombatResolved",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "previousOwner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipTransferred",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_tokenIdA",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_tokenIdB",
-				"type": "uint256"
-			}
-		],
-		"name": "resolveCombat",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "winnerId",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "stake",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "unstake",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "BASE_STAT",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "calculatePower",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "CHARACTER_NFT",
-		"outputs": [
-			{
-				"internalType": "contract IGodLevelCharacterNFT",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes",
-				"name": "",
-				"type": "bytes"
-			}
-		],
-		"name": "onERC721Received",
-		"outputs": [
-			{
-				"internalType": "bytes4",
-				"name": "",
-				"type": "bytes4"
-			}
-		],
-		"stateMutability": "pure",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "originalOwner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "SECONDS_PER_PERIOD",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "stakeStartTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "STRENGTH_GAIN_PER_PERIOD",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
+        const fujiChainId = '0xa869';
+        const fujiExplorerUrl = 'https://testnet.snowtrace.io';
+        const mintPriceHex = '0xB1A2BC2EC50000'; // 0.05 AVAX in Hex Wei
 
         // --- DOM Elements ---
         const connectWalletBtn = document.getElementById('connectWalletBtn');
@@ -1039,122 +117,81 @@
         const messageTextEl = document.getElementById('messageText');
         const connectWalletContainer = document.getElementById('connectWalletContainer');
         const gameContainer = document.getElementById('gameContainer');
-        const mintNftBtn = document.getElementById('mint-nft-btn'); // New reference for Mint button
 
-        // --- GLOBAL STATE ---
-        let currentAccount = null;
-        let charNftInterface, gameEngineInterface;
-        let ownedNfts = [];
-        let mintPriceWei; 
-
-        // --- UTILITIES ---
-
-        // Utility to wait for transaction confirmation, replicated from sample's logic
-        function waitForTransaction(txHash) {
-            return new Promise((resolve) => {
-                const interval = setInterval(async () => {
-                    try {
-                        const receipt = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params: [txHash] });
-                        if (receipt) { 
-                            clearInterval(interval); 
-                            resolve(receipt); 
-                        }
-                    } catch(e) { /* console.error(e); */ } // Use silent console error, following best practices for polling
-                }, 2000);
-            });
-        }
-
-        function calculateDeterministicPower(stats) {
-            // Power = Strength*3 + Agility*2 + Intelligence*1
-            return (stats.strength * 3) + (stats.agility * 2) + (stats.intelligence * 1);
-        }
-
-        function setButtonLoading(btn, isLoading, originalText = 'Execute') {
-            btn.disabled = isLoading;
-            if (isLoading) {
-                btn.innerHTML = '<svg class="animate-spin h-5 w-5 mx-auto" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-            } else {
-                btn.innerHTML = originalText;
-            }
-        }
-
-        function showMessage(msg, type = 'info') {
-            messageTextEl.textContent = msg;
-            messageTextEl.className = 'transition-opacity duration-300';
-            messageTextEl.classList.add(type === 'success' ? 'text-green-400' : type === 'error' ? 'text-red-400' : 'text-gray-300');
-        }
-
-        function showModal(title, message, isError = false, txHash = null) {
-            document.getElementById('modal-title').textContent = title;
-            document.getElementById('modal-message').textContent = message;
-            document.getElementById('modal-title').className = isError ? 'text-xl font-bold mb-4 text-red-500' : 'text-xl font-bold mb-4 text-indigo-400';
-            
-            const txLink = document.getElementById('modal-tx-link');
-            if (txHash) {
-                txLink.querySelector('a').href = `https://testnet.snowtrace.io/tx/${txHash}`;
-                txLink.classList.remove('hidden');
-            } else {
-                txLink.classList.add('hidden');
-            }
-
-            document.getElementById('modal-close-btn').classList.toggle('hidden', !isError && !txHash);
-            document.getElementById('modal').classList.remove('hidden');
-        }
-
-        function hideModal() {
-            document.getElementById('modal').classList.add('hidden');
-        }
+        const mintBtn = document.getElementById('mintBtn');
         
-        // --- WEB3 CONNECTION LOGIC (Copied from Sample Pattern) ---
+        const tokenIdInput = document.getElementById('tokenIdInput');
+        const lookupTokenBtn = document.getElementById('lookupTokenBtn');
+        const characterCard = document.getElementById('characterCard');
+        const cardTokenId = document.getElementById('cardTokenId');
+        const statStr = document.getElementById('statStr');
+        const statAgi = document.getElementById('statAgi');
+        const statInt = document.getElementById('statInt');
+        const statWins = document.getElementById('statWins');
+        const statLosses = document.getElementById('statLosses');
+        const statStaked = document.getElementById('statStaked');
+        const stakeActions = document.getElementById('stakeActions');
+        const unstakeActions = document.getElementById('unstakeActions');
+        const approveBtn = document.getElementById('approveBtn');
+        const stakeBtn = document.getElementById('stakeBtn');
+        const unstakeBtn = document.getElementById('unstakeBtn');
+
+        const tokenAInput = document.getElementById('tokenAInput');
+        const tokenBInput = document.getElementById('tokenBInput');
+        const fightBtn = document.getElementById('fightBtn');
+        
+        const allButtons = [connectWalletBtn, mintBtn, lookupTokenBtn, approveBtn, stakeBtn, unstakeBtn, fightBtn];
+
+        // --- State ---
+        let currentAccount = null;
+        let nftInterface;
+        let gameEngineInterface;
+        let lookedUpTokenId = null;
+
+        // --- Core Wallet Logic (From Sample) ---
+        
+        async function connectWallet() {
+            if (typeof window.ethereum === 'undefined') { return showMessage('MetaMask is not installed!', 'error'); }
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                handleAccountsChanged(accounts);
+            } catch (error) {
+                if (error.code === -32002) { showMessage('Connection request already pending. Check MetaMask.', 'error'); } 
+                else { showMessage('Wallet connection rejected.', 'error'); }
+                console.error("Connection failed:", error);
+            }
+        }
 
         function handleAccountsChanged(accounts) {
             if (accounts.length === 0) {
                 currentAccount = null;
                 connectWalletContainer.classList.remove('hidden');
                 gameContainer.classList.add('hidden');
-                walletAddressEl.textContent = 'Wallet Status: Disconnected';
+                walletAddressEl.textContent = '';
+                characterCard.classList.add('hidden');
                 showMessage('Wallet disconnected. Please connect to play.', 'info');
-                // Ensure interfaces are cleared if disconnected
-                charNftInterface = undefined;
-                gameEngineInterface = undefined;
-                mintNftBtn.disabled = true;
-            } else if (accounts[0].toLowerCase() !== currentAccount?.toLowerCase()) {
+            } else if (accounts[0] !== currentAccount) {
                 currentAccount = accounts[0];
                 connectWalletContainer.classList.add('hidden');
                 gameContainer.classList.remove('hidden');
                 walletAddressEl.textContent = `Connected: ${currentAccount.substring(0,6)}...${currentAccount.substring(currentAccount.length - 4)}`;
-                showMessage('Wallet connected. Checking network...', 'success');
+                showMessage('Wallet connected. Ready to play!', 'success');
                 checkAndSwitchNetwork();
             }
         }
 
         async function checkAndSwitchNetwork() {
-            if (typeof window.ethereum === 'undefined') return;
             try {
                 const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                
-                if (chainId !== FUJI_CHAIN_ID) {
-                    showMessage('Wrong network. Switching to Avalanche Fuji Testnet...', 'error');
-                    
-                    try {
-                        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: FUJI_CHAIN_ID }] });
-                        // Re-check chainId after switch attempt - rely on chainChanged event to trigger reload/re-init
-                    } catch (switchError) {
-                        if (switchError.code === 4902) { 
-                            await addFujiNetwork(); 
-                        } else if (switchError.code === 4001) {
-                             showMessage('Network switch cancelled by user.', 'error');
-                        } else {
-                             showMessage('Please manually switch to Avalanche Fuji C-Chain.', 'error');
-                             console.error("Network switch error:", switchError);
-                        }
-                    }
+                if (chainId !== fujiChainId) {
+                    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: fujiChainId }] });
                 } else {
-                    initAppInterfaces(); // Proceed to app initialization only when on Fuji
+                    // Wallet is connected and on the right network.
+                    // We don't auto-load data, user will trigger actions.
                 }
-            } catch (error) {
-                console.error("Network check error:", error);
-                showMessage('Failed to check network status.', 'error');
+            } catch (switchError) {
+                if (switchError.code === 4902) { await addFujiNetwork(); } 
+                else { showMessage('Please switch to Fuji Testnet in MetaMask.', 'error'); }
             }
         }
 
@@ -1163,413 +200,347 @@
                 await window.ethereum.request({
                     method: 'wallet_addEthereumChain',
                     params: [{
-                        chainId: FUJI_CHAIN_ID, chainName: 'Avalanche Fuji C-Chain',
+                        chainId: fujiChainId, chainName: 'Avalanche Fuji C-Chain',
                         nativeCurrency: { name: 'AVAX', symbol: 'AVAX', decimals: 18 },
                         rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
-                        blockExplorerUrls: ['https://testnet.snowtrace.io/']
+                        blockExplorerUrls: [fujiExplorerUrl]
                     }],
                 });
-            } catch (addError) { 
-                showMessage('Could not add Fuji network. Please add it manually.', 'error'); 
-            }
+            } catch (addError) { showMessage('Could not add Fuji network.', 'error'); }
         }
 
-        async function connectWallet() {
-            if (typeof window.ethereum === 'undefined') { return showMessage('MetaMask is not installed!', 'error'); }
+        // --- Game Interaction Logic (Adapted from Sample) ---
+
+        async function handleMint() {
+            if (!nftInterface) return;
+            setLoading(true);
+            showMessage('Confirm transaction in your wallet...', 'info');
+
+            const txParams = {
+                from: currentAccount,
+                to: nftContractAddress,
+                value: mintPriceHex,
+                gas: '0x493E0', // 300,000 gas
+                data: nftInterface.encodeFunctionData("safeMint", [currentAccount]),
+            };
+
             try {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                handleAccountsChanged(accounts);
+                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                showMessage('Minting... Waiting for confirmation.', 'info');
+                const receipt = await waitForTransaction(txHash);
+
+                if (receipt.status === '0x1') {
+                    // Find the Transfer event log to get the tokenId
+                    const transferLog = receipt.logs.find(log => 
+                        log.address.toLowerCase() === nftContractAddress.toLowerCase() &&
+                        log.topics[0] === nftInterface.getEventTopic("Transfer") &&
+                        log.topics[2].toLowerCase() === "0x" + currentAccount.substring(2).padStart(64, '0').toLowerCase()
+                    );
+                    
+                    if (transferLog) {
+                        const tokenId = ethers.BigNumber.from(transferLog.topics[3]).toString();
+                        showMessage(`Mint successful! Your new character is Token ID: ${tokenId} 🎉`, 'success', txHash);
+                        tokenIdInput.value = tokenId; // Auto-fill the lookup
+                        handleLookup(); // Auto-lookup the new token
+                    } else {
+                        showMessage('Mint successful, but could not decode Token ID.', 'info', txHash);
+                    }
+                } else { 
+                    showMessage('Transaction failed. Please try again.', 'error', txHash);
+                }
             } catch (error) {
-                if (error.code === 4001) { showMessage('Connection rejected by user.', 'error'); } 
-                else { showMessage('Wallet connection failed.', 'error'); }
-                console.error("Connection failed:", error);
+                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred.', 'error'); console.error(error); }
             }
+            setLoading(false);
         }
 
-        // --- APP INITIALIZATION (Ethers Interfaces) ---
+        async function handleLookup() {
+            if (!nftInterface) return;
+            const tokenId = tokenIdInput.value;
+            if (!tokenId) { return showMessage('Please enter a Token ID.', 'error'); }
 
-        function initAppInterfaces() {
-            // Initialize interfaces for encoding/decoding
+            setLoading(true, [lookupTokenBtn]);
+            showMessage('Looking up token...', 'info');
+            characterCard.classList.add('hidden');
+            lookedUpTokenId = null;
+
             try {
-                charNftInterface = new ethers.utils.Interface(CHAR_NFT_ABI);
-                gameEngineInterface = new ethers.utils.Interface(GAME_ENGINE_ABI);
-                mintPriceWei = ethers.BigNumber.from("50000000000000000"); // 0.05 AVAX
+                // Check owner first
+                const ownerData = nftInterface.encodeFunctionData("ownerOf", [tokenId]);
+                const ownerHex = await window.ethereum.request({ method: 'eth_call', params: [{ to: nftContractAddress, data: ownerData }, 'latest'] });
+                const ownerAddress = ethers.utils.defaultAbiCoder.decode(['address'], ownerHex)[0];
+
+                if (ownerAddress.toLowerCase() !== currentAccount.toLowerCase()) {
+                    showMessage(`You do not own Token ID ${tokenId}.`, 'error');
+                    setLoading(false, [lookupTokenBtn]);
+                    return;
+                }
+
+                // Get stats
+                const statsData = nftInterface.encodeFunctionData("characterStats", [tokenId]);
+                const statsHex = await window.ethereum.request({ method: 'eth_call', params: [{ to: nftContractAddress, data: statsData }, 'latest'] });
+                const stats = nftInterface.decodeFunctionResult("characterStats", statsHex);
+
+                // Update Card
+                cardTokenId.textContent = tokenId;
+                statStr.textContent = stats.strength.toString();
+                statAgi.textContent = stats.agility.toString();
+                statInt.textContent = stats.intelligence.toString();
+                statWins.textContent = stats.wins.toString();
+                statLosses.textContent = stats.losses.toString();
                 
-                mintNftBtn.disabled = false;
-                showMessage('Connected to Avalanche Fuji Testnet. Ready to mint!', 'success');
-                fetchOwnedNfts();
-            } catch (e) {
-                showMessage('Failed to initialize Ethers interfaces.', 'error');
-                console.error('Interface init error:', e);
+                if (stats.isStaked) {
+                    statStaked.textContent = "Staked";
+                    statStaked.className = "font-bold text-yellow-400";
+                    stakeActions.classList.add('hidden');
+                    unstakeActions.classList.remove('hidden');
+                } else {
+                    statStaked.textContent = "Unstaked";
+                    statStaked.className = "font-bold text-blue-400";
+                    stakeActions.classList.remove('hidden');
+                    unstakeActions.classList.add('hidden');
+                }
+
+                characterCard.classList.remove('hidden');
+                showMessage(`Successfully loaded Token ID ${tokenId}.`, 'success');
+                lookedUpTokenId = tokenId;
+
+            } catch (error) {
+                console.error(error);
+                showMessage('Failed to look up token. Is the ID correct?', 'error');
             }
+            setLoading(false, [lookupTokenBtn]);
         }
 
-        // --- RAW CALL/DATA LOGIC ---
-        
-        async function runEthCall(toAddress, data) {
-            const result = await window.ethereum.request({ 
-                method: 'eth_call', 
-                params: [{ to: toAddress, data: data }, 'latest'] 
-            });
-            return result;
-        }
+        async function handleApprove() {
+            if (!nftInterface || !lookedUpTokenId) return;
+            setLoading(true);
+            showMessage('Confirm approval in your wallet...', 'info');
 
-        // --- NFT DATA & RENDERING ---
-        
-        async function fetchOwnedNfts() {
-             if (!charNftInterface) {
-                document.getElementById('loading-nfts').textContent = "Connect wallet to load NFTs.";
-                return;
-            }
-            document.getElementById('loading-nfts').textContent = "Fetching NFTs from the contract...";
-            ownedNfts = [];
+            const txParams = {
+                from: currentAccount,
+                to: nftContractAddress,
+                data: nftInterface.encodeFunctionData("approve", [gameEngineContractAddress, lookedUpTokenId]),
+            };
             
             try {
-                for (let i = 0; i < 50; i++) {
+                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                showMessage('Approving... Waiting for confirmation.', 'info');
+                const receipt = await waitForTransaction(txHash);
+
+                if (receipt.status === '0x1') {
+                    showMessage(`Game Engine approved for Token ID ${lookedUpTokenId}! You can now stake.`, 'success', txHash);
+                } else { 
+                    showMessage('Approval failed. Please try again.', 'error', txHash);
+                }
+            } catch (error) {
+                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred.', 'error'); console.error(error); }
+            }
+            setLoading(false);
+        }
+
+        async function handleStake() {
+            if (!gameEngineInterface || !lookedUpTokenId) return;
+            setLoading(true);
+            showMessage('Confirm staking in your wallet...', 'info');
+
+            // First, check if approved.
+            try {
+                const data = nftInterface.encodeFunctionData("getApproved", [lookedUpTokenId]);
+                const approvedHex = await window.ethereum.request({ method: 'eth_call', params: [{ to: nftContractAddress, data: data }, 'latest'] });
+                const approvedAddress = ethers.utils.defaultAbiCoder.decode(['address'], approvedHex)[0];
+
+                if (approvedAddress.toLowerCase() !== gameEngineContractAddress.toLowerCase()) {
+                    showMessage('You must approve the Game Engine before staking.', 'error');
+                    setLoading(false);
+                    return;
+                }
+            } catch (e) {
+                showMessage('Could not verify approval. Aborting.', 'error');
+                setLoading(false);
+                return;
+            }
+
+            // If approved, proceed to stake.
+            const txParams = {
+                from: currentAccount,
+                to: gameEngineContractAddress,
+                data: gameEngineInterface.encodeFunctionData("stake", [lookedUpTokenId]),
+            };
+            
+            try {
+                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                showMessage('Staking... Waiting for confirmation.', 'info');
+                const receipt = await waitForTransaction(txHash);
+
+                if (receipt.status === '0x1') {
+                    showMessage(`Token ID ${lookedUpTokenId} is now staked!`, 'success', txHash);
+                    handleLookup(); // Refresh card
+                } else { 
+                    showMessage('Staking failed. Please try again.', 'error', txHash);
+                }
+            } catch (error) {
+                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred.', 'error'); console.error(error); }
+            }
+            setLoading(false);
+        }
+
+        async function handleUnstake() {
+            if (!gameEngineInterface || !lookedUpTokenId) return;
+            setLoading(true);
+            showMessage('Confirm unstaking in your wallet...', 'info');
+
+            const txParams = {
+                from: currentAccount,
+                to: gameEngineContractAddress,
+                data: gameEngineInterface.encodeFunctionData("unstake", [lookedUpTokenId]),
+            };
+            
+            try {
+                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                showMessage('Unstaking... Waiting for confirmation.', 'info');
+                const receipt = await waitForTransaction(txHash);
+
+                if (receipt.status === '0x1') {
+                    showMessage(`Token ID ${lookedUpTokenId} has been unstaked! Stats updated.`, 'success', txHash);
+                    handleLookup(); // Refresh card
+                } else { 
+                    showMessage('Unstaking failed. Please try again.', 'error', txHash);
+                }
+            } catch (error) {
+                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred.', 'error'); console.error(error); }
+            }
+            setLoading(false);
+        }
+
+        async function handleFight() {
+            if (!gameEngineInterface) return;
+            const tokenIdA = tokenAInput.value;
+            const tokenIdB = tokenBInput.value;
+            if (!tokenIdA || !tokenIdB) { return showMessage('Please enter both Token IDs.', 'error'); }
+
+            setLoading(true);
+            showMessage('Confirm combat in your wallet...', 'info');
+
+            const txParams = {
+                from: currentAccount,
+                to: gameEngineContractAddress,
+                data: gameEngineInterface.encodeFunctionData("resolveCombat", [tokenIdA, tokenIdB]),
+            };
+            
+            try {
+                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                showMessage('Resolving combat... Waiting for confirmation.', 'info');
+                const receipt = await waitForTransaction(txHash);
+
+                if (receipt.status === '0x1') {
+                    const combatLog = receipt.logs.find(log => 
+                        log.address.toLowerCase() === gameEngineContractAddress.toLowerCase() &&
+                        log.topics[0] === gameEngineInterface.getEventTopic("CombatResolved")
+                    );
+
+                    if (combatLog) {
+                        const decodedLog = gameEngineInterface.decodeEventLog("CombatResolved", combatLog.data, combatLog.topics);
+                        const winnerId = decodedLog.winnerId.toString();
+                        showMessage(`Combat finished! Winner is Token ID: ${winnerId}! 🏆`, 'success', txHash);
+                    } else {
+                        showMessage('Combat successful, but result unclear.', 'info', txHash);
+                    }
+                } else { 
+                    showMessage('Combat failed. Are both tokens unstaked and owned by you?', 'error', txHash);
+                }
+            } catch (error) {
+                if (error.code === 4001) { showMessage('Transaction cancelled.', 'error'); } 
+                else { showMessage('An error occurred.', 'error'); console.error(error); }
+            }
+            setLoading(false);
+        }
+
+        // --- Utility Functions (From Sample) ---
+
+        function waitForTransaction(txHash) {
+            return new Promise((resolve) => {
+                const interval = setInterval(async () => {
                     try {
-                        // 1. Check ownerOf (View Call)
-                        const ownerOfData = charNftInterface.encodeFunctionData("ownerOf", [i]);
-                        const ownerResult = await runEthCall(CHAR_NFT_ADDRESS, ownerOfData);
-                        const owner = charNftInterface.decodeFunctionResult("ownerOf", ownerResult)[0];
-                        
-                        if (owner.toLowerCase() === currentAccount.toLowerCase()) {
-                            // 2. Fetch Stats (View Call)
-                            const statsData = charNftInterface.encodeFunctionData("characterStats", [i]);
-                            const statsResult = await runEthCall(CHAR_NFT_ADDRESS, statsData);
-                            // Decode 6 return values: strength, agility, intelligence, isStaked, wins, losses
-                            const statsArray = charNftInterface.decodeFunctionResult("characterStats", statsResult);
-                            
-                            const stats = {
-                                tokenId: i,
-                                strength: statsArray[0].toNumber(),
-                                agility: statsArray[1].toNumber(),
-                                intelligence: statsArray[2].toNumber(),
-                                isStaked: statsArray[3],
-                                wins: statsArray[4].toNumber(),
-                                losses: statsArray[5].toNumber(),
-                            };
-                            stats.power = calculateDeterministicPower(stats);
-                            ownedNfts.push(stats);
-                        }
-                    } catch (e) {
-                        // Logic to stop fetching when token ID doesn't exist (reverts with CALL_EXCEPTION)
-                        if (e.code === -32000 || (e.code === "CALL_EXCEPTION")) {
-                            break; 
-                        }
-                        console.error(`Error checking token ID ${i}:`, e);
+                        const receipt = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params: [txHash] });
+                        if (receipt) { clearInterval(interval); resolve(receipt); }
+                    } catch(e) { console.error(e); }
+                }, 2000);
+            });
+        }
+
+        function setLoading(isLoading, buttons = allButtons) {
+            const loadingSpinner = `<svg class="animate-spin h-5 w-5 mx-auto" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            
+            for (const btn of buttons) {
+                if (!btn) continue; // In case a button isn't on the page
+                if (isLoading) {
+                    btn.disabled = true;
+                    // Store original text
+                    if (!btn.dataset.originalText) {
+                        btn.dataset.originalText = btn.innerHTML;
+                    }
+                    btn.innerHTML = loadingSpinner;
+                } else {
+                    btn.disabled = false;
+                    // Restore original text
+                    if (btn.dataset.originalText) {
+                        btn.innerHTML = btn.dataset.originalText;
                     }
                 }
-                renderNfts();
-            } catch (e) {
-                console.error("Error during NFT fetch:", e);
-                document.getElementById('loading-nfts').textContent = "Error fetching NFT data.";
             }
         }
 
-        function renderNfts() {
-            const listElement = document.getElementById('nft-list');
-            listElement.innerHTML = '';
+        function showMessage(msg, type = 'info', txHash = null) {
+            let colorClass = 'text-gray-300';
+            if (type === 'success') colorClass = 'text-green-400';
+            if (type === 'error') colorClass = 'text-red-400';
             
-            if (ownedNfts.length === 0) {
-                listElement.innerHTML = `<p class="text-gray-500 col-span-full">You do not own any character NFTs yet. Mint one above!</p>`;
+            let html = msg;
+            if (txHash) {
+                html += ` <a href="${fujiExplorerUrl}/tx/${txHash}" target="_blank" rel="noopener noreferrer" class="font-bold underline text-blue-400">View on Snowtrace</a>`;
+            }
+            
+            messageTextEl.innerHTML = html;
+            messageTextEl.className = `transition-opacity duration-300 ${colorClass}`;
+        }
+
+        // --- Initial Load & Event Listeners (From Sample) ---
+        function init() {
+            if (nftContractABI && nftContractAddress && gameEngineABI && gameEngineContractAddress) {
+                nftInterface = new ethers.utils.Interface(nftContractABI);
+                gameEngineInterface = new ethers.utils.Interface(gameEngineABI);
             } else {
-                 document.getElementById('loading-nfts').textContent = ""; // Clear loading message
-            }
-
-            ownedNfts.forEach(nft => {
-                const card = createNftCard(nft);
-                listElement.appendChild(card);
-            });
-            updateCombatSelects();
-        }
-
-        function createNftCard(nft) {
-            const card = document.createElement('div');
-            card.className = `p-4 bg-gray-700 rounded-xl shadow-lg border-2 transition duration-300 ${nft.isStaked ? 'border-yellow-500' : 'border-indigo-500'}`;
-            
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-3">
-                    <h3 class="text-2xl font-bold text-white">#${nft.tokenId}</h3>
-                    <span class="text-sm font-semibold p-1 rounded-md ${nft.isStaked ? 'bg-yellow-500 text-gray-900' : 'bg-green-500 text-gray-900'}">
-                        ${nft.isStaked ? 'STAKED' : 'READY'}
-                    </span>
-                </div>
-                <div class="mb-4 text-center">
-                    <p class="text-4xl font-extrabold text-indigo-400">${nft.power}</p>
-                    <p class="text-sm text-gray-400">Total Power Score</p>
-                </div>
-                
-                <div class="space-y-2">
-                    <div class="flex justify-between text-sm">
-                        <span class="font-medium text-gray-300">Strength (x3):</span>
-                        <span class="font-bold text-red-400">${nft.strength}</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="font-medium text-gray-300">Agility (x2):</span>
-                        <span class="font-bold text-blue-400">${nft.agility}</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="font-medium text-gray-300">Intelligence (x1):</span>
-                        <span class="font-bold text-green-400">${nft.intelligence}</span>
-                    </div>
-                    <div class="flex justify-between text-sm pt-2 border-t border-gray-600">
-                        <span class="font-medium text-gray-300">Combat History:</span>
-                        <span class="font-bold text-white">${nft.wins} W / ${nft.losses} L</span>
-                    </div>
-                </div>
-
-                <div class="mt-4">
-                    <button data-token-id="${nft.tokenId}" 
-                        class="w-full py-2 font-bold rounded-lg transition duration-200 shadow-md transform hover:scale-[1.01] ${nft.isStaked ? 'bg-red-500 hover:bg-red-600 text-white unstake-btn' : 'bg-blue-500 hover:bg-blue-600 text-white stake-btn'}"
-                        ${nft.isStaked ? '' : ''}>
-                        ${nft.isStaked ? 'UNSTAKE & AUGMENT' : 'STAKE (Gains +1 STR/30 Days)'}
-                    </button>
-                </div>
-            `;
-            return card;
-        }
-
-        // --- COMBAT ARENA LOGIC ---
-
-        async function getPowerFromContract(tokenId) {
-            const data = gameEngineInterface.encodeFunctionData("calculatePower", [tokenId]);
-            const result = await runEthCall(GAME_ENGINE_ADDRESS, data);
-            return gameEngineInterface.decodeFunctionResult("calculatePower", result)[0];
-        }
-
-        function updateCombatSelects() {
-            const selectA = document.getElementById('challenger-a');
-            const selectB = document.getElementById('challenger-b');
-            
-            selectA.innerHTML = '<option value="">Select Challenger A</option>';
-            selectB.innerHTML = '<option value="">Select Challenger B</option>';
-
-            const unstakedNfts = ownedNfts.filter(nft => !nft.isStaked);
-            
-            document.getElementById('resolve-combat-btn').disabled = unstakedNfts.length < 2;
-
-            unstakedNfts.forEach(nft => {
-                const optionA = document.createElement('option');
-                optionA.value = nft.tokenId;
-                optionA.textContent = `#${nft.tokenId} (Pwr: ${nft.power})`;
-                selectA.appendChild(optionA);
-
-                const optionB = document.createElement('option');
-                optionB.value = nft.tokenId;
-                optionB.textContent = `#${nft.tokenId} (Pwr: ${nft.power})`;
-                selectB.appendChild(optionB);
-            });
-        }
-
-        async function runCombatPrediction(idA, idB) {
-            const combatDisplay = document.getElementById('combat-display');
-            
-            // 1. Fetch power score using the contract's view function for absolute accuracy
-            if (!gameEngineInterface) return null;
-            const powerA = await getPowerFromContract(idA);
-            const powerB = await getPowerFromContract(idB);
-            
-            let outcomeMessage = '';
-
-            if (powerA.gt(powerB)) {
-                outcomeMessage = `Challenger #${idA} has superior **POWER (${powerA.toString()})** and is predicted to win!`;
-            } else if (powerB.gt(powerA)) {
-                outcomeMessage = `Challenger #${idB} has superior **POWER (${powerB.toString()})** and is predicted to win!`;
-            } else {
-                // The true compliment to the deterministic system: A tie-breaker
-                outcomeMessage = `***A perfect Power Tie!*** The winner will be determined by the immutable block hash of the transaction.`;
-            }
-
-            // 2. Run Visual Simulation
-            combatDisplay.innerHTML = `
-                <div class="w-full text-lg font-semibold mb-4 text-white fade-in">
-                    PREDICTION:
-                </div>
-                <div class="grid grid-cols-5 w-full items-center text-sm mb-4">
-                    <div class="col-span-2 text-left p-2 bg-gray-700 rounded-lg shadow-inner">
-                        <span class="text-red-400 font-bold">#${idA}</span> (Pwr: ${powerA.toString()})
-                    </div>
-                    <div class="col-span-1 text-center text-red-500 font-extrabold">VS</div>
-                    <div class="col-span-2 text-right p-2 bg-gray-700 rounded-lg shadow-inner">
-                        <span class="text-blue-400 font-bold">#${idB}</span> (Pwr: ${powerB.toString()})
-                    </div>
-                </div>
-                <div class="text-center p-3 rounded-lg text-sm bg-indigo-900/50">
-                    ${outcomeMessage}
-                </div>
-            `;
-            
-            return { idA, idB };
-        }
-
-        // --- TRANSACTION HANDLERS (using raw eth_sendTransaction) ---
-        
-        document.getElementById('modal-close-btn').addEventListener('click', hideModal);
-        connectWalletBtn.addEventListener('click', connectWallet);
-
-
-        document.getElementById('mint-nft-btn').addEventListener('click', async () => {
-            if (!charNftInterface) {
-                showMessage("Contracts not loaded. Connect wallet and ensure you are on Fuji Testnet.", 'error');
-                return;
-            }
-            setButtonLoading(mintNftBtn, true, 'Mint New Character (0.05 AVAX)');
-            showModal('Minting Character', 'Awaiting transaction approval. Please confirm in MetaMask.');
-            try {
-                const data = charNftInterface.encodeFunctionData("safeMint", [currentAccount]);
-                
-                const txParams = {
-                    from: currentAccount,
-                    to: CHAR_NFT_ADDRESS,
-                    value: mintPriceWei.toHexString(), 
-                    data: data,
-                    gas: GAS_LIMIT,
-                };
-
-                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
-                showModal('Minting...', 'Transaction submitted. Waiting for Avalanche Fuji confirmation.', false, txHash);
-                await waitForTransaction(txHash);
-                
-                showModal('Minting Complete!', `New character NFT has been minted!`, true, txHash);
-                fetchOwnedNfts();
-            } catch (error) {
-                console.error("Minting error:", error);
-                const msg = error.message || "Transaction failed or cancelled.";
-                showModal('Minting Failed', msg, true);
-            } finally {
-                setButtonLoading(mintNftBtn, false, 'Mint New Character (0.05 AVAX)');
-            }
-        });
-
-        document.getElementById('nft-list').addEventListener('click', async (e) => {
-            const btn = e.target;
-            const tokenId = btn.dataset.tokenId;
-            if (!tokenId || !charNftInterface) return;
-
-            const isStaking = btn.classList.contains('stake-btn');
-            const originalText = isStaking ? 'STAKE (Gains +1 STR/30 Days)' : 'UNSTAKE & AUGMENT';
-            setButtonLoading(btn, true, originalText);
-
-            try {
-                if (isStaking) {
-                    showModal('Staking NFT', 'Approving Game Engine to move NFT...');
-                    
-                    // 1. APPROVE (Raw Call)
-                    let data = charNftInterface.encodeFunctionData("approve", [GAME_ENGINE_ADDRESS, tokenId]);
-                    let txParams = { from: currentAccount, to: CHAR_NFT_ADDRESS, data: data, gas: GAS_LIMIT };
-                    let txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
-                    showModal('Staking NFT', 'Approval submitted. Waiting for confirmation...', false, txHash);
-                    await waitForTransaction(txHash);
-                    
-                    // 2. STAKE (Raw Call)
-                    showModal('Staking NFT', 'Approval confirmed. Sending NFT to Staking Engine...');
-                    data = gameEngineInterface.encodeFunctionData("stake", [tokenId]);
-                    txParams = { from: currentAccount, to: GAME_ENGINE_ADDRESS, data: data, gas: GAS_LIMIT };
-                    txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
-                    showModal('Staking NFT', 'Staking transaction submitted. Waiting for confirmation...', false, txHash);
-                    await waitForTransaction(txHash);
-
-                    showModal('Staking Complete!', `Character #${tokenId} is now staked and gaining strength!`, true, txHash);
-                } else {
-                    showModal('Unstaking & Augmenting', 'Unstaking character and calculating compounded strength...');
-                    
-                    // UNSTAKE (Raw Call - Calculates and applies stats)
-                    const data = gameEngineInterface.encodeFunctionData("unstake", [tokenId]);
-                    const txParams = { from: currentAccount, to: GAME_ENGINE_ADDRESS, data: data, gas: GAS_LIMIT };
-                    const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
-                    showModal('Unstaking...', 'Unstaking transaction submitted. Waiting for confirmation.', false, txHash);
-                    await waitForTransaction(txHash);
-
-                    showModal('Augmentation Complete!', `Character #${tokenId} has been augmented and is ready for combat!`, true, txHash);
-                }
-            } catch (error) {
-                console.error("Staking/Unstaking error:", error);
-                const msg = error.message || "Transaction failed or cancelled.";
-                showModal('Transaction Failed', msg, true);
-            } finally {
-                setButtonLoading(btn, false, originalText);
-                fetchOwnedNfts();
-            }
-        });
-
-        document.getElementById('resolve-combat-btn').addEventListener('click', async () => {
-            const resolveBtn = document.getElementById('resolve-combat-btn');
-            const idA = document.getElementById('challenger-a').value;
-            const idB = document.getElementById('challenger-b').value;
-            
-            if (!idA || !idB || idA === idB) {
-                showModal('Selection Error', 'Please select two unique, unstaked challengers.', true);
-                return;
-            }
-            
-            setButtonLoading(resolveBtn, true, 'Simulate & Resolve Combat');
-            
-            // 1. Run client-side prediction
-            const combatData = await runCombatPrediction(idA, idB);
-            if (!combatData) {
-                setButtonLoading(resolveBtn, false, 'Simulate & Resolve Combat');
+                showMessage('Contract ABIs or Addresses are missing!', 'error');
                 return;
             }
 
-            // 2. Prompt for transaction execution
-            showModal('Execute Combat?', 
-                `The deterministic prediction is complete. Send the transaction to the GameEngine to finalize the outcome and update the combat history for both NFTs on-chain.`, 
-                false
-            );
-            
-            // Overriding modal button for execution
-            document.getElementById('modal-close-btn').textContent = 'Execute';
-            document.getElementById('modal-close-btn').classList.remove('hidden');
-            
-            document.getElementById('modal-close-btn').onclick = async () => {
-                try {
-                    showModal('Finalizing Combat', 'Awaiting transaction approval. Please confirm in MetaMask.');
-                    
-                    // 3. EXECUTE DETERMINISTIC COMBAT (Raw Call)
-                    const data = gameEngineInterface.encodeFunctionData("resolveCombat", [idA, idB]);
-                    const txParams = { from: currentAccount, to: GAME_ENGINE_ADDRESS, data: data, gas: GAS_LIMIT };
-                    const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
-                    
-                    showModal('Finalizing Combat...', 'Transaction submitted. Waiting for confirmation.', false, txHash);
-                    await waitForTransaction(txHash);
-
-                    showModal('Combat Finalized!', `The battle has been recorded on the Fuji C-Chain. Check your NFT history!`, true, txHash);
-                    document.getElementById('modal-close-btn').textContent = 'Close';
-                    document.getElementById('modal-close-btn').onclick = hideModal;
-
-                } catch (error) {
-                    console.error("Combat resolution error:", error);
-                    const msg = error.message || "Transaction failed or cancelled.";
-                    showModal('Combat Failed', `Error: ${msg}`, true);
-                }
-                setButtonLoading(resolveBtn, false, 'Simulate & Resolve Combat');
-                fetchOwnedNfts();
-            };
-            setButtonLoading(resolveBtn, false, 'Simulate & Resolve Combat'); 
-        });
-
-
-        // --- Initial Load & Event Listeners ---
-        function initListeners() {
             if (typeof window.ethereum !== 'undefined') {
                 window.ethereum.on('accountsChanged', handleAccountsChanged);
                 window.ethereum.on('chainChanged', () => window.location.reload());
-                
                 window.ethereum.request({ method: 'eth_accounts' })
                     .then(handleAccountsChanged)
                     .catch(err => console.error("Error fetching initial accounts:", err));
             } else {
-                showMessage('Please install MetaMask to interact with the Avalanche Arena!', 'error');
+                showMessage('Please install MetaMask to play!', 'error');
                 connectWalletBtn.disabled = true;
             }
-
-            // Attach event listeners to buttons
-            connectWalletBtn.addEventListener('click', connectWallet);
         }
         
-        window.onload = initListeners;
-
+        // --- Add Game Event Listeners ---
+        connectWalletBtn.addEventListener('click', connectWallet);
+        mintBtn.addEventListener('click', handleMint);
+        lookupTokenBtn.addEventListener('click', handleLookup);
+        approveBtn.addEventListener('click', handleApprove);
+        stakeBtn.addEventListener('click', handleStake);
+        unstakeBtn.addEventListener('click', handleUnstake);
+        fightBtn.addEventListener('click', handleFight);
+        
+        init();
     </script>
-
 </body>
 </html>
