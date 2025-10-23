@@ -6,14 +6,14 @@
     <title>Avalanche Arena - Season 1</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Ethers.js for Web3 interactions -->
+    <!-- Load Ethers.js for Web3 interactions (used for ABI encoding/decoding) -->
     <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
         body { font-family: 'Poppins', sans-serif; background-color: #1a1a1a; color: #f0f0f0; }
         .stat-bar { height: 1.5rem; }
         
-        /* Styles adapted from sample code for a professional look */
+        /* Styles adapted for a professional look */
         .avax-logo { width: 40px; height: 40px; margin-right: 10px; }
         .btn-primary { 
             background: linear-gradient(90deg, #5c62d5, #44499d); 
@@ -128,6 +128,7 @@
         const CHAR_NFT_ADDRESS = '0xCc88DcFed964C96508ffc799e5e48926cc3a2dE1';
         const GAME_ENGINE_ADDRESS = '0x4F4e61F010190D377763d3417A589c5e16076DCB';
         const FUJI_CHAIN_ID = '0xa869'; // Avalanche Fuji C-Chain in Hex
+        const GAS_LIMIT = '0x30D40'; // 200,000 gas limit in hex, mirroring sample structure
 
         // --- ABI Snippets (Full, Generated ABIs) ---
         
@@ -1042,12 +1043,26 @@
 
         // --- GLOBAL STATE ---
         let currentAccount = null;
-        let provider, signer;
-        let charNftContract, gameEngineContract;
+        let charNftInterface, gameEngineInterface;
         let ownedNfts = [];
         let mintPriceWei; 
 
         // --- UTILITIES ---
+
+        // Utility to wait for transaction confirmation, replicated from sample's logic
+        function waitForTransaction(txHash) {
+            return new Promise((resolve) => {
+                const interval = setInterval(async () => {
+                    try {
+                        const receipt = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params: [txHash] });
+                        if (receipt) { 
+                            clearInterval(interval); 
+                            resolve(receipt); 
+                        }
+                    } catch(e) { /* console.error(e); */ } // Use silent console error, following best practices for polling
+                }, 2000);
+            });
+        }
 
         function calculateDeterministicPower(stats) {
             // Power = Strength*3 + Agility*2 + Intelligence*1
@@ -1082,7 +1097,6 @@
                 txLink.classList.add('hidden');
             }
 
-            // We hide the close button only if it's a silent process modal (not an error and not finalized)
             document.getElementById('modal-close-btn').classList.toggle('hidden', !isError && !txHash);
             document.getElementById('modal').classList.remove('hidden');
         }
@@ -1091,7 +1105,7 @@
             document.getElementById('modal').classList.add('hidden');
         }
         
-        // --- WEB3 CONNECTION LOGIC ---
+        // --- WEB3 CONNECTION LOGIC (Copied from Sample Pattern) ---
 
         function handleAccountsChanged(accounts) {
             if (accounts.length === 0) {
@@ -1100,11 +1114,11 @@
                 gameContainer.classList.add('hidden');
                 walletAddressEl.textContent = 'Wallet Status: Disconnected';
                 showMessage('Wallet disconnected. Please connect to play.', 'info');
-                // Ensure contracts are cleared if disconnected
-                charNftContract = undefined;
-                gameEngineContract = undefined;
+                // Ensure interfaces are cleared if disconnected
+                charNftInterface = undefined;
+                gameEngineInterface = undefined;
                 mintNftBtn.disabled = true;
-            } else if (accounts[0] !== currentAccount) {
+            } else if (accounts[0].toLowerCase() !== currentAccount?.toLowerCase()) {
                 currentAccount = accounts[0];
                 connectWalletContainer.classList.add('hidden');
                 gameContainer.classList.remove('hidden');
@@ -1120,20 +1134,12 @@
                 const chainId = await window.ethereum.request({ method: 'eth_chainId' });
                 
                 if (chainId !== FUJI_CHAIN_ID) {
-                     showMessage('Wrong network. Switching to Avalanche Fuji Testnet...', 'error');
+                    showMessage('Wrong network. Switching to Avalanche Fuji Testnet...', 'error');
                     
                     try {
                         await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: FUJI_CHAIN_ID }] });
-                        // Re-check chainId after switch attempt
-                        const newChainId = await window.ethereum.request({ method: 'eth_chainId' });
-                        if (newChainId === FUJI_CHAIN_ID) {
-                            initAppContracts();
-                        } else {
-                            // If switch fails (user rejects or system failure)
-                            throw new Error("Switch failed or rejected.");
-                        }
+                        // Re-check chainId after switch attempt - rely on chainChanged event to trigger reload/re-init
                     } catch (switchError) {
-                        // 4902 means the chain hasn't been added to MetaMask
                         if (switchError.code === 4902) { 
                             await addFujiNetwork(); 
                         } else if (switchError.code === 4001) {
@@ -1143,12 +1149,11 @@
                              console.error("Network switch error:", switchError);
                         }
                     }
-
                 } else {
-                    initAppContracts(); // Proceed to app initialization only when on Fuji
+                    initAppInterfaces(); // Proceed to app initialization only when on Fuji
                 }
             } catch (error) {
-                console.error("Network error:", error);
+                console.error("Network check error:", error);
                 showMessage('Failed to check network status.', 'error');
             }
         }
@@ -1164,7 +1169,6 @@
                         blockExplorerUrls: ['https://testnet.snowtrace.io/']
                     }],
                 });
-                // Once added, it attempts to switch automatically.
             } catch (addError) { 
                 showMessage('Could not add Fuji network. Please add it manually.', 'error'); 
             }
@@ -1182,28 +1186,38 @@
             }
         }
 
-        // --- APP INITIALIZATION (Ethers Contracts) ---
+        // --- APP INITIALIZATION (Ethers Interfaces) ---
 
-        function initAppContracts() {
-            // This is ONLY called after network check is successful
-            mintPriceWei = ethers.BigNumber.from("50000000000000000"); // 0.05 AVAX
+        function initAppInterfaces() {
+            // Initialize interfaces for encoding/decoding
+            try {
+                charNftInterface = new ethers.utils.Interface(CHAR_NFT_ABI);
+                gameEngineInterface = new ethers.utils.Interface(GAME_ENGINE_ABI);
+                mintPriceWei = ethers.BigNumber.from("50000000000000000"); // 0.05 AVAX
+                
+                mintNftBtn.disabled = false;
+                showMessage('Connected to Avalanche Fuji Testnet. Ready to mint!', 'success');
+                fetchOwnedNfts();
+            } catch (e) {
+                showMessage('Failed to initialize Ethers interfaces.', 'error');
+                console.error('Interface init error:', e);
+            }
+        }
 
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            signer = provider.getSigner();
-
-            // Contracts initialized only when provider and signer are ready
-            charNftContract = new ethers.Contract(CHAR_NFT_ADDRESS, CHAR_NFT_ABI, signer);
-            gameEngineContract = new ethers.Contract(GAME_ENGINE_ADDRESS, GAME_ENGINE_ABI, signer);
-            
-            mintNftBtn.disabled = false;
-            showMessage('Connected to Avalanche Fuji Testnet. Ready to mint!', 'success');
-            fetchOwnedNfts();
+        // --- RAW CALL/DATA LOGIC ---
+        
+        async function runEthCall(toAddress, data) {
+            const result = await window.ethereum.request({ 
+                method: 'eth_call', 
+                params: [{ to: toAddress, data: data }, 'latest'] 
+            });
+            return result;
         }
 
         // --- NFT DATA & RENDERING ---
         
         async function fetchOwnedNfts() {
-             if (!charNftContract) {
+             if (!charNftInterface) {
                 document.getElementById('loading-nfts').textContent = "Connect wallet to load NFTs.";
                 return;
             }
@@ -1211,15 +1225,19 @@
             ownedNfts = [];
             
             try {
-                // Find owned NFTs by iterating up to a reasonable limit (PoC assumption)
                 for (let i = 0; i < 50; i++) {
                     try {
-                        // Use a non-signed contract/provider for pure view calls to be efficient
-                        const viewCharNftContract = new ethers.Contract(CHAR_NFT_ADDRESS, CHAR_NFT_ABI, provider);
-                        const owner = await viewCharNftContract.ownerOf(i);
+                        // 1. Check ownerOf (View Call)
+                        const ownerOfData = charNftInterface.encodeFunctionData("ownerOf", [i]);
+                        const ownerResult = await runEthCall(CHAR_NFT_ADDRESS, ownerOfData);
+                        const owner = charNftInterface.decodeFunctionResult("ownerOf", ownerResult)[0];
                         
                         if (owner.toLowerCase() === currentAccount.toLowerCase()) {
-                            const statsArray = await viewCharNftContract.characterStats(i);
+                            // 2. Fetch Stats (View Call)
+                            const statsData = charNftInterface.encodeFunctionData("characterStats", [i]);
+                            const statsResult = await runEthCall(CHAR_NFT_ADDRESS, statsData);
+                            // Decode 6 return values: strength, agility, intelligence, isStaked, wins, losses
+                            const statsArray = charNftInterface.decodeFunctionResult("characterStats", statsResult);
                             
                             const stats = {
                                 tokenId: i,
@@ -1234,15 +1252,10 @@
                             ownedNfts.push(stats);
                         }
                     } catch (e) {
-                        // If ownerOf reverts for a token ID, it means the token ID hasn't been minted yet. We break the loop.
-                        if (e.reason && (e.reason.includes("invalid token ID") || e.reason.includes("owner query for non-existent token"))) {
+                        // Logic to stop fetching when token ID doesn't exist (reverts with CALL_EXCEPTION)
+                        if (e.code === -32000 || (e.code === "CALL_EXCEPTION")) {
                             break; 
                         }
-                        if (e.code === "CALL_EXCEPTION") {
-                            // If ownerOf reverts, it usually means token does not exist. Break the loop.
-                            break; 
-                        }
-                        // For other errors, log and continue
                         console.error(`Error checking token ID ${i}:`, e);
                     }
                 }
@@ -1259,8 +1272,8 @@
             
             if (ownedNfts.length === 0) {
                 listElement.innerHTML = `<p class="text-gray-500 col-span-full">You do not own any character NFTs yet. Mint one above!</p>`;
-                updateCombatSelects();
-                return;
+            } else {
+                 document.getElementById('loading-nfts').textContent = ""; // Clear loading message
             }
 
             ownedNfts.forEach(nft => {
@@ -1318,69 +1331,56 @@
 
         // --- COMBAT ARENA LOGIC ---
 
+        async function getPowerFromContract(tokenId) {
+            const data = gameEngineInterface.encodeFunctionData("calculatePower", [tokenId]);
+            const result = await runEthCall(GAME_ENGINE_ADDRESS, data);
+            return gameEngineInterface.decodeFunctionResult("calculatePower", result)[0];
+        }
+
         function updateCombatSelects() {
             const selectA = document.getElementById('challenger-a');
             const selectB = document.getElementById('challenger-b');
             
-            // Clear existing options
             selectA.innerHTML = '<option value="">Select Challenger A</option>';
             selectB.innerHTML = '<option value="">Select Challenger B</option>';
 
             const unstakedNfts = ownedNfts.filter(nft => !nft.isStaked);
             
-            if (unstakedNfts.length >= 2) {
-                document.getElementById('resolve-combat-btn').disabled = false;
-            } else {
-                document.getElementById('resolve-combat-btn').disabled = true;
-            }
+            document.getElementById('resolve-combat-btn').disabled = unstakedNfts.length < 2;
 
             unstakedNfts.forEach(nft => {
                 const optionA = document.createElement('option');
                 optionA.value = nft.tokenId;
-                optionA.textContent = `#${nft.tokenId} (Power: ${nft.power})`;
+                optionA.textContent = `#${nft.tokenId} (Pwr: ${nft.power})`;
                 selectA.appendChild(optionA);
 
                 const optionB = document.createElement('option');
                 optionB.value = nft.tokenId;
-                optionB.textContent = `#${nft.tokenId} (Power: ${nft.power})`;
+                optionB.textContent = `#${nft.tokenId} (Pwr: ${nft.power})`;
                 selectB.appendChild(optionB);
             });
         }
 
-        // The client-side simulation logic
         async function runCombatPrediction(idA, idB) {
             const combatDisplay = document.getElementById('combat-display');
             
-            const statsA = ownedNfts.find(n => n.tokenId == idA);
-            const statsB = ownedNfts.find(n => n.tokenId == idB);
-
-            if (!statsA || !statsB || idA === idB) {
-                 combatDisplay.innerHTML = `<p class="text-red-400">Invalid selection. Must select two different, unstaked NFTs.</p>`;
-                 return null;
-            }
-
-            // A: Fetch power score using the contract's view function for accuracy
-            // Note: This relies on the GameEngine contract being initialized
-            if (!gameEngineContract) return null;
-            const powerA = await gameEngineContract.calculatePower(idA);
-            const powerB = await gameEngineContract.calculatePower(idB);
+            // 1. Fetch power score using the contract's view function for absolute accuracy
+            if (!gameEngineInterface) return null;
+            const powerA = await getPowerFromContract(idA);
+            const powerB = await getPowerFromContract(idB);
             
-            let winner = null;
             let outcomeMessage = '';
 
             if (powerA.gt(powerB)) {
-                winner = statsA;
                 outcomeMessage = `Challenger #${idA} has superior **POWER (${powerA.toString()})** and is predicted to win!`;
             } else if (powerB.gt(powerA)) {
-                winner = statsB;
                 outcomeMessage = `Challenger #${idB} has superior **POWER (${powerB.toString()})** and is predicted to win!`;
             } else {
                 // The true compliment to the deterministic system: A tie-breaker
                 outcomeMessage = `***A perfect Power Tie!*** The winner will be determined by the immutable block hash of the transaction.`;
-                winner = { tokenId: '?' }; // Unknown winner
             }
 
-            // B: Run Visual Simulation
+            // 2. Run Visual Simulation
             combatDisplay.innerHTML = `
                 <div class="w-full text-lg font-semibold mb-4 text-white fade-in">
                     PREDICTION:
@@ -1402,28 +1402,39 @@
             return { idA, idB };
         }
 
-        // --- EVENT HANDLERS ---
+        // --- TRANSACTION HANDLERS (using raw eth_sendTransaction) ---
         
         document.getElementById('modal-close-btn').addEventListener('click', hideModal);
         connectWalletBtn.addEventListener('click', connectWallet);
 
 
         document.getElementById('mint-nft-btn').addEventListener('click', async () => {
-            if (!charNftContract) {
+            if (!charNftInterface) {
                 showMessage("Contracts not loaded. Connect wallet and ensure you are on Fuji Testnet.", 'error');
                 return;
             }
             setButtonLoading(mintNftBtn, true, 'Mint New Character (0.05 AVAX)');
             showModal('Minting Character', 'Awaiting transaction approval. Please confirm in MetaMask.');
             try {
-                const tx = await charNftContract.safeMint(currentAccount, { value: mintPriceWei });
-                showModal('Minting...', 'Transaction submitted. Waiting for Avalanche Fuji confirmation.', false, tx.hash);
-                await tx.wait();
-                showModal('Minting Complete!', `New character NFT has been minted!`, true);
-                fetchOwnedNfts(); // Refresh list
+                const data = charNftInterface.encodeFunctionData("safeMint", [currentAccount]);
+                
+                const txParams = {
+                    from: currentAccount,
+                    to: CHAR_NFT_ADDRESS,
+                    value: mintPriceWei.toHexString(), 
+                    data: data,
+                    gas: GAS_LIMIT,
+                };
+
+                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                showModal('Minting...', 'Transaction submitted. Waiting for Avalanche Fuji confirmation.', false, txHash);
+                await waitForTransaction(txHash);
+                
+                showModal('Minting Complete!', `New character NFT has been minted!`, true, txHash);
+                fetchOwnedNfts();
             } catch (error) {
                 console.error("Minting error:", error);
-                const msg = error.data ? error.data.message : error.message;
+                const msg = error.message || "Transaction failed or cancelled.";
                 showModal('Minting Failed', msg, true);
             } finally {
                 setButtonLoading(mintNftBtn, false, 'Mint New Character (0.05 AVAX)');
@@ -1433,52 +1444,51 @@
         document.getElementById('nft-list').addEventListener('click', async (e) => {
             const btn = e.target;
             const tokenId = btn.dataset.tokenId;
-            if (!tokenId || !charNftContract) return;
+            if (!tokenId || !charNftInterface) return;
 
-            // Determine if staking or unstaking
             const isStaking = btn.classList.contains('stake-btn');
             const originalText = isStaking ? 'STAKE (Gains +1 STR/30 Days)' : 'UNSTAKE & AUGMENT';
+            setButtonLoading(btn, true, originalText);
 
             try {
-                setButtonLoading(btn, true, originalText);
-                
                 if (isStaking) {
                     showModal('Staking NFT', 'Approving Game Engine to move NFT...');
                     
-                    // 1. Approve
-                    let tx = await charNftContract.approve(GAME_ENGINE_ADDRESS, tokenId);
-                    showModal('Staking NFT', 'Approval submitted. Waiting for confirmation...', false, tx.hash);
-                    await tx.wait();
+                    // 1. APPROVE (Raw Call)
+                    let data = charNftInterface.encodeFunctionData("approve", [GAME_ENGINE_ADDRESS, tokenId]);
+                    let txParams = { from: currentAccount, to: CHAR_NFT_ADDRESS, data: data, gas: GAS_LIMIT };
+                    let txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                    showModal('Staking NFT', 'Approval submitted. Waiting for confirmation...', false, txHash);
+                    await waitForTransaction(txHash);
                     
-                    // 2. Stake
+                    // 2. STAKE (Raw Call)
                     showModal('Staking NFT', 'Approval confirmed. Sending NFT to Staking Engine...');
-                    tx = await gameEngineContract.stake(tokenId);
-                    showModal('Staking NFT', 'Staking transaction submitted. Waiting for confirmation...', false, tx.hash);
-                    await tx.wait();
+                    data = gameEngineInterface.encodeFunctionData("stake", [tokenId]);
+                    txParams = { from: currentAccount, to: GAME_ENGINE_ADDRESS, data: data, gas: GAS_LIMIT };
+                    txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                    showModal('Staking NFT', 'Staking transaction submitted. Waiting for confirmation...', false, txHash);
+                    await waitForTransaction(txHash);
 
-                    showModal('Staking Complete!', `Character #${tokenId} is now staked and gaining strength!`, true);
+                    showModal('Staking Complete!', `Character #${tokenId} is now staked and gaining strength!`, true, txHash);
                 } else {
                     showModal('Unstaking & Augmenting', 'Unstaking character and calculating compounded strength...');
                     
-                    // Unstake (Calculates and applies stats)
-                    const tx = await gameEngineContract.unstake(tokenId);
-                    showModal('Unstaking...', 'Unstaking transaction submitted. Waiting for confirmation...', false, tx.hash);
-                    await tx.wait();
+                    // UNSTAKE (Raw Call - Calculates and applies stats)
+                    const data = gameEngineInterface.encodeFunctionData("unstake", [tokenId]);
+                    const txParams = { from: currentAccount, to: GAME_ENGINE_ADDRESS, data: data, gas: GAS_LIMIT };
+                    const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                    showModal('Unstaking...', 'Unstaking transaction submitted. Waiting for confirmation.', false, txHash);
+                    await waitForTransaction(txHash);
 
-                    showModal('Augmentation Complete!', `Character #${tokenId} has been augmented and is ready for combat!`, true);
+                    showModal('Augmentation Complete!', `Character #${tokenId} has been augmented and is ready for combat!`, true, txHash);
                 }
             } catch (error) {
                 console.error("Staking/Unstaking error:", error);
-                const msg = error.data ? error.data.message : error.message;
-                    // Check for specific error message regarding staked NFTs
-                    if (msg && msg.includes("Character is currently staked")) {
-                        showModal('Transaction Failed', "This character is already staked and cannot be staked again or used for combat.", true);
-                    } else {
-                        showModal('Transaction Failed', msg, true);
-                    }
+                const msg = error.message || "Transaction failed or cancelled.";
+                showModal('Transaction Failed', msg, true);
             } finally {
                 setButtonLoading(btn, false, originalText);
-                fetchOwnedNfts(); // Refresh list after success/failure
+                fetchOwnedNfts();
             }
         });
 
@@ -1515,35 +1525,36 @@
                 try {
                     showModal('Finalizing Combat', 'Awaiting transaction approval. Please confirm in MetaMask.');
                     
-                    // 3. Execute deterministic combat
-                    const tx = await gameEngineContract.resolveCombat(idA, idB);
-                    showModal('Finalizing Combat...', 'Transaction submitted. Waiting for confirmation.', false, tx.hash);
-                    await tx.wait();
+                    // 3. EXECUTE DETERMINISTIC COMBAT (Raw Call)
+                    const data = gameEngineInterface.encodeFunctionData("resolveCombat", [idA, idB]);
+                    const txParams = { from: currentAccount, to: GAME_ENGINE_ADDRESS, data: data, gas: GAS_LIMIT };
+                    const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] });
+                    
+                    showModal('Finalizing Combat...', 'Transaction submitted. Waiting for confirmation.', false, txHash);
+                    await waitForTransaction(txHash);
 
-                    showModal('Combat Finalized!', `The battle has been recorded on the Fuji C-Chain. Check your NFT history!`, true);
+                    showModal('Combat Finalized!', `The battle has been recorded on the Fuji C-Chain. Check your NFT history!`, true, txHash);
                     document.getElementById('modal-close-btn').textContent = 'Close';
                     document.getElementById('modal-close-btn').onclick = hideModal;
 
                 } catch (error) {
                     console.error("Combat resolution error:", error);
-                    const msg = error.data ? error.data.message : error.message;
+                    const msg = error.message || "Transaction failed or cancelled.";
                     showModal('Combat Failed', `Error: ${msg}`, true);
                 }
                 setButtonLoading(resolveBtn, false, 'Simulate & Resolve Combat');
-                fetchOwnedNfts(); // Refresh list
+                fetchOwnedNfts();
             };
-            setButtonLoading(resolveBtn, false, 'Simulate & Resolve Combat'); // Release button if modal is just showing
+            setButtonLoading(resolveBtn, false, 'Simulate & Resolve Combat'); 
         });
 
 
         // --- Initial Load & Event Listeners ---
         function initListeners() {
             if (typeof window.ethereum !== 'undefined') {
-                // Set up event listeners for account and chain changes
                 window.ethereum.on('accountsChanged', handleAccountsChanged);
                 window.ethereum.on('chainChanged', () => window.location.reload());
                 
-                // Try to auto-connect if already approved
                 window.ethereum.request({ method: 'eth_accounts' })
                     .then(handleAccountsChanged)
                     .catch(err => console.error("Error fetching initial accounts:", err));
@@ -1556,7 +1567,6 @@
             connectWalletBtn.addEventListener('click', connectWallet);
         }
         
-        // Initialize the app listeners on page load
         window.onload = initListeners;
 
     </script>
