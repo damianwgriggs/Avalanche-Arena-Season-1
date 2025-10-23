@@ -1038,6 +1038,7 @@
         const messageTextEl = document.getElementById('messageText');
         const connectWalletContainer = document.getElementById('connectWalletContainer');
         const gameContainer = document.getElementById('gameContainer');
+        const mintNftBtn = document.getElementById('mint-nft-btn'); // New reference for Mint button
 
         // --- GLOBAL STATE ---
         let currentAccount = null;
@@ -1051,6 +1052,15 @@
         function calculateDeterministicPower(stats) {
             // Power = Strength*3 + Agility*2 + Intelligence*1
             return (stats.strength * 3) + (stats.agility * 2) + (stats.intelligence * 1);
+        }
+
+        function setButtonLoading(btn, isLoading, originalText = 'Execute') {
+            btn.disabled = isLoading;
+            if (isLoading) {
+                btn.innerHTML = '<svg class="animate-spin h-5 w-5 mx-auto" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            } else {
+                btn.innerHTML = originalText;
+            }
         }
 
         function showMessage(msg, type = 'info') {
@@ -1072,6 +1082,7 @@
                 txLink.classList.add('hidden');
             }
 
+            // We hide the close button only if it's a silent process modal (not an error and not finalized)
             document.getElementById('modal-close-btn').classList.toggle('hidden', !isError && !txHash);
             document.getElementById('modal').classList.remove('hidden');
         }
@@ -1080,7 +1091,7 @@
             document.getElementById('modal').classList.add('hidden');
         }
         
-        // --- WEB3 CONNECTION LOGIC (Refactored from Sample) ---
+        // --- WEB3 CONNECTION LOGIC ---
 
         function handleAccountsChanged(accounts) {
             if (accounts.length === 0) {
@@ -1089,6 +1100,10 @@
                 gameContainer.classList.add('hidden');
                 walletAddressEl.textContent = 'Wallet Status: Disconnected';
                 showMessage('Wallet disconnected. Please connect to play.', 'info');
+                // Ensure contracts are cleared if disconnected
+                charNftContract = undefined;
+                gameEngineContract = undefined;
+                mintNftBtn.disabled = true;
             } else if (accounts[0] !== currentAccount) {
                 currentAccount = accounts[0];
                 connectWalletContainer.classList.add('hidden');
@@ -1100,16 +1115,41 @@
         }
 
         async function checkAndSwitchNetwork() {
+            if (typeof window.ethereum === 'undefined') return;
             try {
                 const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                
                 if (chainId !== FUJI_CHAIN_ID) {
-                    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: FUJI_CHAIN_ID }] });
+                     showMessage('Wrong network. Switching to Avalanche Fuji Testnet...', 'error');
+                    
+                    try {
+                        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: FUJI_CHAIN_ID }] });
+                        // Re-check chainId after switch attempt
+                        const newChainId = await window.ethereum.request({ method: 'eth_chainId' });
+                        if (newChainId === FUJI_CHAIN_ID) {
+                            initAppContracts();
+                        } else {
+                            // If switch fails (user rejects or system failure)
+                            throw new Error("Switch failed or rejected.");
+                        }
+                    } catch (switchError) {
+                        // 4902 means the chain hasn't been added to MetaMask
+                        if (switchError.code === 4902) { 
+                            await addFujiNetwork(); 
+                        } else if (switchError.code === 4001) {
+                             showMessage('Network switch cancelled by user.', 'error');
+                        } else {
+                             showMessage('Please manually switch to Avalanche Fuji C-Chain.', 'error');
+                             console.error("Network switch error:", switchError);
+                        }
+                    }
+
                 } else {
                     initAppContracts(); // Proceed to app initialization only when on Fuji
                 }
-            } catch (switchError) {
-                if (switchError.code === 4902) { await addFujiNetwork(); } 
-                else { showMessage('Please switch to Avalanche Fuji C-Chain in MetaMask.', 'error'); }
+            } catch (error) {
+                console.error("Network error:", error);
+                showMessage('Failed to check network status.', 'error');
             }
         }
 
@@ -1124,7 +1164,10 @@
                         blockExplorerUrls: ['https://testnet.snowtrace.io/']
                     }],
                 });
-            } catch (addError) { showMessage('Could not add Fuji network.', 'error'); }
+                // Once added, it attempts to switch automatically.
+            } catch (addError) { 
+                showMessage('Could not add Fuji network. Please add it manually.', 'error'); 
+            }
         }
 
         async function connectWallet() {
@@ -1142,22 +1185,28 @@
         // --- APP INITIALIZATION (Ethers Contracts) ---
 
         function initAppContracts() {
-            // FIX: Initialize mintPriceWei here, guaranteeing Ethers.js is loaded
+            // This is ONLY called after network check is successful
             mintPriceWei = ethers.BigNumber.from("50000000000000000"); // 0.05 AVAX
 
             provider = new ethers.providers.Web3Provider(window.ethereum);
             signer = provider.getSigner();
 
+            // Contracts initialized only when provider and signer are ready
             charNftContract = new ethers.Contract(CHAR_NFT_ADDRESS, CHAR_NFT_ABI, signer);
             gameEngineContract = new ethers.Contract(GAME_ENGINE_ADDRESS, GAME_ENGINE_ABI, signer);
             
-            showMessage('Connected to Fuji C-Chain. Fetching characters...', 'success');
+            mintNftBtn.disabled = false;
+            showMessage('Connected to Avalanche Fuji Testnet. Ready to mint!', 'success');
             fetchOwnedNfts();
         }
 
         // --- NFT DATA & RENDERING ---
         
         async function fetchOwnedNfts() {
+             if (!charNftContract) {
+                document.getElementById('loading-nfts').textContent = "Connect wallet to load NFTs.";
+                return;
+            }
             document.getElementById('loading-nfts').textContent = "Fetching NFTs from the contract...";
             ownedNfts = [];
             
@@ -1185,8 +1234,16 @@
                             ownedNfts.push(stats);
                         }
                     } catch (e) {
-                        if (e.reason && e.reason.includes("invalid token ID") || e.code === "CALL_EXCEPTION") break;
-                        // Silently handle token IDs that don't exist yet
+                        // If ownerOf reverts for a token ID, it means the token ID hasn't been minted yet. We break the loop.
+                        if (e.reason && (e.reason.includes("invalid token ID") || e.reason.includes("owner query for non-existent token"))) {
+                            break; 
+                        }
+                        if (e.code === "CALL_EXCEPTION") {
+                            // If ownerOf reverts, it usually means token does not exist. Break the loop.
+                            break; 
+                        }
+                        // For other errors, log and continue
+                        console.error(`Error checking token ID ${i}:`, e);
                     }
                 }
                 renderNfts();
@@ -1303,6 +1360,8 @@
             }
 
             // A: Fetch power score using the contract's view function for accuracy
+            // Note: This relies on the GameEngine contract being initialized
+            if (!gameEngineContract) return null;
             const powerA = await gameEngineContract.calculatePower(idA);
             const powerB = await gameEngineContract.calculatePower(idB);
             
@@ -1350,6 +1409,11 @@
 
 
         document.getElementById('mint-nft-btn').addEventListener('click', async () => {
+            if (!charNftContract) {
+                showMessage("Contracts not loaded. Connect wallet and ensure you are on Fuji Testnet.", 'error');
+                return;
+            }
+            setButtonLoading(mintNftBtn, true, 'Mint New Character (0.05 AVAX)');
             showModal('Minting Character', 'Awaiting transaction approval. Please confirm in MetaMask.');
             try {
                 const tx = await charNftContract.safeMint(currentAccount, { value: mintPriceWei });
@@ -1361,16 +1425,24 @@
                 console.error("Minting error:", error);
                 const msg = error.data ? error.data.message : error.message;
                 showModal('Minting Failed', msg, true);
+            } finally {
+                setButtonLoading(mintNftBtn, false, 'Mint New Character (0.05 AVAX)');
             }
         });
 
         document.getElementById('nft-list').addEventListener('click', async (e) => {
             const btn = e.target;
             const tokenId = btn.dataset.tokenId;
-            if (!tokenId) return;
+            if (!tokenId || !charNftContract) return;
+
+            // Determine if staking or unstaking
+            const isStaking = btn.classList.contains('stake-btn');
+            const originalText = isStaking ? 'STAKE (Gains +1 STR/30 Days)' : 'UNSTAKE & AUGMENT';
 
             try {
-                if (btn.classList.contains('stake-btn')) {
+                setButtonLoading(btn, true, originalText);
+                
+                if (isStaking) {
                     showModal('Staking NFT', 'Approving Game Engine to move NFT...');
                     
                     // 1. Approve
@@ -1385,7 +1457,7 @@
                     await tx.wait();
 
                     showModal('Staking Complete!', `Character #${tokenId} is now staked and gaining strength!`, true);
-                } else if (btn.classList.contains('unstake-btn')) {
+                } else {
                     showModal('Unstaking & Augmenting', 'Unstaking character and calculating compounded strength...');
                     
                     // Unstake (Calculates and applies stats)
@@ -1404,26 +1476,30 @@
                     } else {
                         showModal('Transaction Failed', msg, true);
                     }
+            } finally {
+                setButtonLoading(btn, false, originalText);
+                fetchOwnedNfts(); // Refresh list after success/failure
             }
-            fetchOwnedNfts(); // Refresh list after success/failure
         });
 
         document.getElementById('resolve-combat-btn').addEventListener('click', async () => {
+            const resolveBtn = document.getElementById('resolve-combat-btn');
             const idA = document.getElementById('challenger-a').value;
             const idB = document.getElementById('challenger-b').value;
             
-            if (!idA || !idB) {
-                showModal('Selection Error', 'Please select two unique challengers.', true);
-                return;
-            }
-            if (idA === idB) {
-                 showModal('Selection Error', 'A character cannot fight itself. Select two different NFTs.', true);
+            if (!idA || !idB || idA === idB) {
+                showModal('Selection Error', 'Please select two unique, unstaked challengers.', true);
                 return;
             }
             
+            setButtonLoading(resolveBtn, true, 'Simulate & Resolve Combat');
+            
             // 1. Run client-side prediction
             const combatData = await runCombatPrediction(idA, idB);
-            if (!combatData) return;
+            if (!combatData) {
+                setButtonLoading(resolveBtn, false, 'Simulate & Resolve Combat');
+                return;
+            }
 
             // 2. Prompt for transaction execution
             showModal('Execute Combat?', 
@@ -1453,8 +1529,10 @@
                     const msg = error.data ? error.data.message : error.message;
                     showModal('Combat Failed', `Error: ${msg}`, true);
                 }
+                setButtonLoading(resolveBtn, false, 'Simulate & Resolve Combat');
                 fetchOwnedNfts(); // Refresh list
             };
+            setButtonLoading(resolveBtn, false, 'Simulate & Resolve Combat'); // Release button if modal is just showing
         });
 
 
@@ -1473,6 +1551,9 @@
                 showMessage('Please install MetaMask to interact with the Avalanche Arena!', 'error');
                 connectWalletBtn.disabled = true;
             }
+
+            // Attach event listeners to buttons
+            connectWalletBtn.addEventListener('click', connectWallet);
         }
         
         // Initialize the app listeners on page load
